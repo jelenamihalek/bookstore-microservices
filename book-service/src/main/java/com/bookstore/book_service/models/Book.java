@@ -4,22 +4,22 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name="books")
-public class BookModel {
+public class Book {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	public int id;
+	private int id;
 	
-	public String title;
-	public String author;
-	public double price;
-	public int stock;
+	private String title;
+	private String author;
+	private double price;
+	private int stock;
 	
 	
-	public BookModel() {
+	public Book() {
 		super();
 	}
-	public BookModel(int id, String title, String author, double price, int stock) {
+	public Book(int id, String title, String author, double price, int stock) {
 		super();
 		this.id = id;
 		this.title = title;
