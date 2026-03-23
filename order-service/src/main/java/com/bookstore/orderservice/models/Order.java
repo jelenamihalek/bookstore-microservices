@@ -17,7 +17,7 @@ public class Order {
 	private int bookId;
 	private int userId;
 	private int quantity;
-	
+	private String status;
 	
 	
 	public Order() {
@@ -29,6 +29,13 @@ public class Order {
 		this.userId=userId;
 		this.bookId = bookId;
 		this.quantity = quantity;
+	}
+	
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
 	}
 	public int getId() {
 		return id;

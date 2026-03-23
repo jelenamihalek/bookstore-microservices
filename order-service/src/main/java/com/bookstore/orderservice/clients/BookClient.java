@@ -13,4 +13,6 @@ public interface BookClient {
 
     @PutMapping("/books/{id}/decrease")
     void decreaseStock(@PathVariable int id, @RequestParam int quantity);
+    @PutMapping("/books/{id}/increase")
+    void increaseStock(@PathVariable int id, @RequestParam int quantity);
 }

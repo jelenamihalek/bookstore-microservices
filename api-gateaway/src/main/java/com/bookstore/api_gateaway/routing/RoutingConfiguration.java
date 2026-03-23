@@ -22,6 +22,10 @@ public class RoutingConfiguration {
 					    .path("/orders/**")
 		                .uri("lb://order-service"))
 				
+				.route("payment-service", r -> r
+					    .path("/payments/**")
+					    .uri("lb://payment-service"))
+				
 				.build();
 	}
 }

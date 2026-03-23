@@ -63,4 +63,10 @@ public class BookController {
 
         bookService.decreaseStock(id, quantity);
     }
+    @PutMapping("/{id}/increase")
+    public void increaseStock(@PathVariable int id,
+                              @RequestParam int quantity) {
+
+        bookService.increaseStock(id, quantity);
+    }
 }
