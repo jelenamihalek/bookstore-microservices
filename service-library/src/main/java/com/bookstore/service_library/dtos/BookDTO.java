@@ -1,8 +1,6 @@
-package com.bookstore.orderservice.dtos;
-
+package com.bookstore.service_library.dtos;
 
 public class BookDTO {
-
 	private int id;
 	private String title;
 	private int stock;
@@ -41,7 +39,4 @@ public class BookDTO {
 	public BookDTO() {
 		super();
 	}
-	 
-	 
-	
 }

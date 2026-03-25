@@ -1,9 +1,12 @@
 package com.bookstore.orderservice.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import com.bookstore.orderservice.dtos.BookDTO;
+import com.bookstore.service_library.dtos.BookDTO;
 
 @FeignClient(name = "book-service")
 public interface BookClient {

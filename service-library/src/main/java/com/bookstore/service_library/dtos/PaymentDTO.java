@@ -1,8 +1,7 @@
-package com.bookstore.orderservice.dtos;
+package com.bookstore.service_library.dtos;
 
 public class PaymentDTO {
-
-	    private int orderId;
+	 private int orderId;
 	    private double amount;
 	    private String status;
 		public int getOrderId() {
@@ -23,7 +22,4 @@ public class PaymentDTO {
 		public void setStatus(String status) {
 			this.status = status;
 		}
-	    
-	    
-	   
 }

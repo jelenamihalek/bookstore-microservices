@@ -46,6 +46,10 @@
  </dependencyManagement>
 
 	<dependencies>
+	<dependecy>
+	<groupId>com.bookstore</groupId>
+	<artifactId>Util</artifactId>
+	<version>0.0.1-SNAPSHOT</version></dependecy>
 	<dependency>
     <groupId>org.postgresql</groupId>
     <artifactId>postgresql</artifactId>

@@ -8,10 +8,11 @@ import org.springframework.stereotype.Service;
 import com.bookstore.orderservice.clients.BookClient;
 import com.bookstore.orderservice.clients.PaymentClient;
 import com.bookstore.orderservice.clients.UserClient;
-import com.bookstore.orderservice.dtos.BookDTO;
-import com.bookstore.orderservice.dtos.PaymentDTO;
 import com.bookstore.orderservice.models.Order;
 import com.bookstore.orderservice.repository.OrderRepository;
+import com.bookstore.service_library.dtos.BookDTO;
+import com.bookstore.service_library.dtos.PaymentDTO;
+import com.bookstore.service_library.dtos.UserDTO;
 
 @Service
 public class OrderService {
@@ -44,13 +45,17 @@ public class OrderService {
 	                .orElseThrow(() -> new RuntimeException("Order not found"));
 	    }
 	
-	 public Order createOrder(Order order) {
+	 public Order createOrder(Order order, String email) {
 
-		    // 1. user
-		    Object user = userClient.getUserById(order.getUserId());
+		    // 1. uzmi user iz users-service
+		    UserDTO user = userClient.findByEmail(email);
+
 		    if (user == null) {
 		        throw new RuntimeException("User not found");
 		    }
+
+		    // 🔥 KLJUČ: setuj userId iz auth-a
+		    order.setUserId(user.getId());
 
 		    // 2. book
 		    BookDTO book = bookClient.getBookById(order.getBookId());
@@ -62,13 +67,13 @@ public class OrderService {
 		        throw new RuntimeException("Not enough stock");
 		    }
 
-		    // 3. rezervacija stock-a
+		    // 3. smanji stock
 		    bookClient.decreaseStock(order.getBookId(), order.getQuantity());
 
 		    // 4. status
 		    order.setStatus("PENDING");
 
-		    // 5. save order
+		    // 5. save
 		    Order savedOrder = orderRepository.save(order);
 
 		    try {
@@ -79,21 +84,15 @@ public class OrderService {
 
 		        PaymentDTO response = paymentClient.processPayment(payment);
 
-		        // 7. rezultat
 		        if (response != null && "SUCCESS".equals(response.getStatus())) {
 		            savedOrder.setStatus("CONFIRMED");
 		        } else {
 		            savedOrder.setStatus("FAILED");
-
-		            // rollback stock
 		            bookClient.increaseStock(order.getBookId(), order.getQuantity());
 		        }
 
 		    } catch (Exception e) {
-		        // ako payment-service padne
 		        savedOrder.setStatus("FAILED");
-
-		        // rollback stock
 		        bookClient.increaseStock(order.getBookId(), order.getQuantity());
 		    }
 
@@ -117,5 +116,15 @@ public class OrderService {
 		  Order order = orderRepository.findById(id)
 	                .orElseThrow(() -> new RuntimeException("Order not found"));
 		orderRepository.delete(order);
+	}
+	
+	public List<Order> getOrdersForUser(String email) {
+		 UserDTO user = userClient.findByEmail(email);
+
+		    if (user == null) {
+		        throw new RuntimeException("User not found");
+		    }
+
+		    return orderRepository.findByUserId(user.getId());
 	}
 }

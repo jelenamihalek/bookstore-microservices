@@ -40,6 +40,11 @@
     <type>pom</type>
     <scope>import</scope>
    </dependency>
+   <dependency>
+   <groupId>com.bookstore</groupId>
+	<artifactId>service-library</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	</dependency>
 
   </dependencies>
  </dependencyManagement>
@@ -70,6 +75,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.bookstore</groupId>
+			<artifactId>service-library</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

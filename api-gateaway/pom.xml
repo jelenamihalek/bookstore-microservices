@@ -32,6 +32,11 @@
     <type>pom</type>
     <scope>import</scope>
    </dependency>
+     <dependecy>
+  <groupId>com.bookstore</groupId>
+	<artifactId>service-library</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	</dependecy>
   </dependencies>
  </dependencyManagement>
 
@@ -42,6 +47,8 @@
    <groupId>org.springframework.cloud</groupId>
    <artifactId>spring-cloud-starter-gateway</artifactId>
   </dependency>
+
+ 
 
   <!-- Eureka Client -->
   <dependency>
@@ -56,6 +63,16 @@
    <scope>test</scope>
   </dependency>
 
+		
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.bookstore</groupId>
+			<artifactId>service-library</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
  </dependencies>
 
  <build>
