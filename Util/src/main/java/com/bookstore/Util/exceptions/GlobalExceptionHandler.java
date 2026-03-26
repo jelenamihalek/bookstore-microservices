@@ -1,25 +1,70 @@
 package com.bookstore.Util.exceptions;
 
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
+	
+	@ExceptionHandler(InvalidRoleAssigmentException.class)
+	public ResponseEntity<?> handleInvalidRoleException(InvalidRoleAssigmentException ex){
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("message", ex.getMessage());
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Role assignment is not allowed",
+	                    HttpStatus.FORBIDDEN
+	            ));
+	}
+	
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity<?> handleUserNotFounfException(UserNotFoundException ex){
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "User not found",
+	                    HttpStatus.NOT_FOUND
+	            ));
+	}
+	
+	@ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneric(Exception ex) {
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ExceptionModel(
+                        ex.getMessage(),
+                        "Unexpected error",
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                ));
     }
+	@ExceptionHandler(MissingFieldException.class)
+	public ResponseEntity<?> handleMissingField(MissingFieldException ex) {
+
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Missing required field: " + ex.getField(),
+	                    HttpStatus.BAD_REQUEST
+	            ));
+	}
+	
+	@ExceptionHandler(UserNotFoundByEmailException.class)
+	public ResponseEntity<?> handleUserNotFoundByEmail(UserNotFoundByEmailException ex) {
+
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "User not found with given email",
+	                    HttpStatus.NOT_FOUND
+	            ));
+	}
+	
+
+
+
 }

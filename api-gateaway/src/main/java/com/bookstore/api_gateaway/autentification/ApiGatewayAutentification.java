@@ -38,6 +38,10 @@ public class ApiGatewayAutentification {
 
             		    .pathMatchers(HttpMethod.GET,"/users/**").permitAll()
             		    .pathMatchers(HttpMethod.PUT, "/users/admin/**").hasRole("ADMIN")
+            		    .pathMatchers(HttpMethod.PUT, "/users/**").permitAll()
+
+            		    .pathMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+
             		   // .pathMatchers(HttpMethod.PUT,"/users/**").permitAll()
 
 

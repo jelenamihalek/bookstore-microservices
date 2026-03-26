@@ -8,4 +8,6 @@ import com.bookstore.userservice.models.User;
 public interface UserRepository extends JpaRepository<User, Integer> {
 	
 	Optional<User> findByEmail(String email);
+
+	long countByRole(String string);
 }

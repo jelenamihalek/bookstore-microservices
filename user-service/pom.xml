@@ -46,10 +46,7 @@
  </dependencyManagement>
 
 	<dependencies>
-	<dependecy>
-	<groupId>com.bookstore</groupId>
-	<artifactId>Util</artifactId>
-	<version>0.0.1-SNAPSHOT</version></dependecy>
+	
 	<dependency>
     <groupId>org.postgresql</groupId>
     <artifactId>postgresql</artifactId>
@@ -73,6 +70,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.bookstore</groupId>
+			<artifactId>Util</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

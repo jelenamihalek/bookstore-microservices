@@ -6,6 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.bookstore.Util.exceptions.InvalidRoleAssigmentException;
+import com.bookstore.Util.exceptions.MissingFieldException;
+import com.bookstore.Util.exceptions.UserNotFoundByEmailException;
+import com.bookstore.Util.exceptions.UserNotFoundException;
 import com.bookstore.userservice.models.User;
 import com.bookstore.userservice.repositories.UserRepository;
 
@@ -31,27 +35,32 @@ public class UserService {
         }
     }
     
-    // 👤 REGISTER (PUBLIC)
     public User register(User user) {
 
-        if (user.getRole() != null) {
-            throw new RuntimeException("Cannot assign role");
-        }
-
+    	if (user.getRole() != null) {
+    	    throw new InvalidRoleAssigmentException(
+    	        "User cannot assign role during registration",
+    	        user.getRole()
+    	    );
+    	}
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("USER");
 
         return userRepository.save(user);
     }
 
-    // 👑 ADMIN CREATE USER
     public User createUserAsAdmin(User user) {
+    	
+    	if (user.getEmail() == null) {
+    	    throw new MissingFieldException("Email is required", "email");
+    	}
 
-       
+    	if (user.getPassword() == null) {
+    	    throw new MissingFieldException("Password is required", "password");
+    	}
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // admin može birati role
         if (user.getRole() == null) {
             user.setRole("USER");
         }
@@ -65,12 +74,22 @@ public class UserService {
 
     public User getUserById(int id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found",id));
     }
 
     public User createUser(User user) {
+    	
+    	if (user.getEmail() == null) {
+    	    throw new MissingFieldException("Email is required", "email");
+    	}
 
-        
+    	if (user.getPassword() == null) {
+    	    throw new MissingFieldException("Password is required", "password");
+    	}
+    	
+    	if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    	    throw new RuntimeException("Email already exists");
+    	}
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -84,12 +103,16 @@ public class UserService {
     public User updateUser(int id, User updatedUser) {
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found",id));
+        
+        if (updatedUser.getEmail() == null) {
+            throw new MissingFieldException("Email is required", "email");
+        }
 
         user.setEmail(updatedUser.getEmail());
 
         if (updatedUser.getRole() != null) {
-            throw new RuntimeException("Role cannot be changed here");
+            throw new InvalidRoleAssigmentException("Role cannot be changed here",user.getRole());
         }
 
         return userRepository.save(user);
@@ -98,10 +121,10 @@ public class UserService {
     public User updateUserRole(int id, User updatedUser) {
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found",id));
 
         if (updatedUser.getRole() == null) {
-            throw new RuntimeException("Role is required");
+            throw new MissingFieldException("Role is required", "role");
         }
 
         user.setRole(updatedUser.getRole());
@@ -112,13 +135,25 @@ public class UserService {
     public void deleteUser(int id) {
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found",id));
+        
+        if (user.getRole().equals("ADMIN")) {
+
+            long adminCount = userRepository.countByRole("ADMIN");
+
+            if (adminCount <= 1) {
+                throw new RuntimeException("Cannot delete the last admin");
+            }
+        }
 
         userRepository.delete(user);
     }
     
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        		.orElseThrow(() -> new UserNotFoundByEmailException(
+                        "User not found with email: " + email,
+                        email
+                ));
     }
 }

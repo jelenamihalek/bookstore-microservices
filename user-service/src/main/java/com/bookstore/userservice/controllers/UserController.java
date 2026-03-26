@@ -1,7 +1,9 @@
 package com.bookstore.userservice.controllers;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.bookstore.userservice.models.User;
@@ -59,8 +61,11 @@ public class UserController {
     }
     
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable int id) {
+    public ResponseEntity<?>  deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
+        return ResponseEntity.ok(
+        	    Map.of("message", "User successfully deleted")
+        	);
     }
     @GetMapping("/email")
     public User getUserByEmail(@RequestParam String email) {
