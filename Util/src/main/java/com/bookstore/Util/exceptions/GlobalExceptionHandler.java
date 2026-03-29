@@ -107,7 +107,26 @@ public class GlobalExceptionHandler {
 	            ));
 	}
 	
+	@ExceptionHandler(OrderNotFoundException.class)
+	public ResponseEntity<?> handleOrderNotFound(OrderNotFoundException ex){
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	            .body(new ExceptionModel(ex.getMessage(), "Order not found", HttpStatus.NOT_FOUND));
+	}
+	
+	@ExceptionHandler(InvalidOrderException.class)
+	public ResponseEntity<?> handleInvalidOrder(InvalidOrderException ex){
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	            .body(new ExceptionModel(ex.getMessage(), "Invalid order", HttpStatus.BAD_REQUEST));
+	}
+	
+	@ExceptionHandler(OrderAccessDeniedException.class)
+	public ResponseEntity<?> handleAccessDenied(OrderAccessDeniedException ex){
 
-
-
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Access denied",
+	                    HttpStatus.FORBIDDEN
+	            ));
+	}
 }

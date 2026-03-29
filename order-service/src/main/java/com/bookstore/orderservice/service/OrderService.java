@@ -5,11 +5,19 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.bookstore.Util.exceptions.BookNotFoundException;
+import com.bookstore.Util.exceptions.InsufficientStockException;
+import com.bookstore.Util.exceptions.InvalidOrderException;
+import com.bookstore.Util.exceptions.OrderAccessDeniedException;
+import com.bookstore.Util.exceptions.OrderNotFoundException;
+import com.bookstore.Util.exceptions.UserNotFoundByEmailException;
+import com.bookstore.Util.exceptions.UserNotFoundException;
 import com.bookstore.orderservice.clients.BookClient;
 import com.bookstore.orderservice.clients.PaymentClient;
 import com.bookstore.orderservice.clients.UserClient;
 import com.bookstore.orderservice.models.Order;
 import com.bookstore.orderservice.repository.OrderRepository;
+import com.bookstore.service_library.decoder.Decoder;
 import com.bookstore.service_library.dtos.BookDTO;
 import com.bookstore.service_library.dtos.PaymentDTO;
 import com.bookstore.service_library.dtos.UserDTO;
@@ -28,13 +36,18 @@ public class OrderService {
 	
 	@Autowired
 	private PaymentClient paymentClient;
-
-	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,PaymentClient paymentClient) {
+	
+	@Autowired
+	private Decoder decoder;
+	
+	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,PaymentClient paymentClient,
+			Decoder decoder) {
 		super();
 		this.orderRepository = orderRepository;
 		this.bookClient=bookClient;
 		this.userClient=userClient;
 		this.paymentClient=paymentClient;
+		this.decoder=decoder;
 	}
 	
 	public List<Order> getAllOrders(){
@@ -42,16 +55,25 @@ public class OrderService {
 	}
 	 public Order getOrderById(int id) {
 	        return orderRepository.findById(id)
-	                .orElseThrow(() -> new RuntimeException("Order not found"));
+	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
 	    }
 	
-	 public Order createOrder(Order order, String email) {
+	 public Order createOrder(Order order,String authorization) {
 
+		 String email=decoder.decodeHeader(authorization);
 		    // 1. uzmi user iz users-service
 		    UserDTO user = userClient.findByEmail(email);
 
 		    if (user == null) {
-		        throw new RuntimeException("User not found");
+		        throw new UserNotFoundByEmailException("User not found",email);
+		    }
+		    
+		    if (order.getQuantity() <= 0) {
+		        throw new InvalidOrderException("Quantity must be greater than 0");
+		    }
+
+		    if (order.getBookId() <= 0) {
+		        throw new InvalidOrderException("Invalid book ID");
 		    }
 
 		    // 🔥 KLJUČ: setuj userId iz auth-a
@@ -60,11 +82,11 @@ public class OrderService {
 		    // 2. book
 		    BookDTO book = bookClient.getBookById(order.getBookId());
 		    if (book == null) {
-		        throw new RuntimeException("Book not found");
+		        throw new BookNotFoundException("Book not found",order.getBookId());
 		    }
 
 		    if (book.getStock() < order.getQuantity()) {
-		        throw new RuntimeException("Not enough stock");
+		        throw new InsufficientStockException("Not enough stock",order.getQuantity(),book.getStock());
 		    }
 
 		    // 3. smanji stock
@@ -102,7 +124,7 @@ public class OrderService {
 	public Order updateOrder(int id, Order updatedOrder) {
 
 	    Order order = orderRepository.findById(id)
-	            .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
 
 	    order.setBookId(updatedOrder.getBookId());
 	    order.setUserId(updatedOrder.getUserId());
@@ -114,17 +136,38 @@ public class OrderService {
 	
 	public void deleteOrder(int id) {
 		  Order order = orderRepository.findById(id)
-	                .orElseThrow(() -> new RuntimeException("Order not found"));
+	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
 		orderRepository.delete(order);
 	}
 	
-	public List<Order> getOrdersForUser(String email) {
+	public List<Order> getOrdersForUser(String authorization) {
+		 String email=decoder.decodeHeader(authorization);
+
 		 UserDTO user = userClient.findByEmail(email);
 
 		    if (user == null) {
-		        throw new RuntimeException("User not found");
+		        throw new UserNotFoundByEmailException("User not found",email);
 		    }
 
 		    return orderRepository.findByUserId(user.getId());
+	}
+	
+	public Order getOrderByIdForUser(int id, String authorization) {
+
+		 String email=decoder.decodeHeader(authorization);
+	     UserDTO user = userClient.findByEmail(email);
+
+	    if (user == null) {
+	        throw new UserNotFoundException("User not found", null);
+	    }
+
+	    Order order = orderRepository.findById(id)
+	            .orElseThrow(() -> new OrderNotFoundException("Order not found", id));
+
+	    if (order.getUserId() != (user.getId())) {
+	        throw new OrderAccessDeniedException("You are not allowed to view this order",id);
+	    }
+
+	    return order;
 	}
 }

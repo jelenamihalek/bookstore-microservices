@@ -52,8 +52,13 @@ public class ApiGatewayAutentification {
                 .pathMatchers(HttpMethod.DELETE, "/books/**").hasRole("ADMIN")
 
                 // ORDERS
-                .pathMatchers(HttpMethod.GET,"/orders/all").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.GET,"/orders/allForUser").hasRole("USER")
+                .pathMatchers(HttpMethod.POST, "/orders").hasRole("USER")
+                .pathMatchers(HttpMethod.GET, "/orders/my").hasRole("USER")
+
+                .pathMatchers(HttpMethod.GET, "/orders/all").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/orders/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.GET, "/orders/admin/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.GET, "/orders/*").hasRole("USER")
 
                 // sve ostalo
                 .anyExchange().authenticated()

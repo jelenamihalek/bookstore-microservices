@@ -7,7 +7,11 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan(basePackages = "com.bookstore")
+@ComponentScan(basePackages = {
+	    "com.bookstore.orderservice",
+	    "com.bookstore.Util",
+	    "com.bookstore.service_library"
+	})
 
 public class OrderServiceApplication {
 
