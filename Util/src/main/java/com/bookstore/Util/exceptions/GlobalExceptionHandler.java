@@ -32,6 +32,49 @@ public class GlobalExceptionHandler {
 	            ));
 	}
 	
+	@ExceptionHandler(BookNotFoundException.class)
+	public ResponseEntity<?> handleBookNotFounfException(BookNotFoundException ex){
+
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "User not found",
+	                    HttpStatus.NOT_FOUND
+	            ));
+	} 
+	
+	@ExceptionHandler(InsufficientStockException.class)
+	public ResponseEntity<?> handleStock(InsufficientStockException ex){
+
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Not enough stock",
+	                    HttpStatus.BAD_REQUEST
+	            ));
+	}
+	
+	@ExceptionHandler(BookAlreadyExistsException.class)
+	public ResponseEntity<?> handleBookExists(BookAlreadyExistsException ex){
+
+	    return ResponseEntity.status(HttpStatus.CONFLICT)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Book already exists",
+	                    HttpStatus.CONFLICT
+	            ));
+	}
+	
+	@ExceptionHandler(InvalidBookQuantityException.class)
+	public ResponseEntity<?> handleQuantity(InvalidBookQuantityException ex){
+
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Invalid quantity",
+	                    HttpStatus.BAD_REQUEST
+	            ));
+	}
 	@ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex) {
 
