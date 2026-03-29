@@ -25,6 +25,9 @@ public class RoutingConfiguration {
 				.route("payment-service", r -> r
 					    .path("/payments/**")
 					    .uri("lb://payment-service"))
+				.route("notification-service", r -> r
+					    .path("/notifications/**")
+					    .uri("lb://notification-service"))
 				
 				.build();
 	}

@@ -13,12 +13,14 @@ import com.bookstore.Util.exceptions.OrderNotFoundException;
 import com.bookstore.Util.exceptions.UserNotFoundByEmailException;
 import com.bookstore.Util.exceptions.UserNotFoundException;
 import com.bookstore.orderservice.clients.BookClient;
+import com.bookstore.orderservice.clients.NotificationClient;
 import com.bookstore.orderservice.clients.PaymentClient;
 import com.bookstore.orderservice.clients.UserClient;
 import com.bookstore.orderservice.models.Order;
 import com.bookstore.orderservice.repository.OrderRepository;
 import com.bookstore.service_library.decoder.Decoder;
 import com.bookstore.service_library.dtos.BookDTO;
+import com.bookstore.service_library.dtos.NotificationDTO;
 import com.bookstore.service_library.dtos.PaymentDTO;
 import com.bookstore.service_library.dtos.UserDTO;
 
@@ -36,11 +38,15 @@ public class OrderService {
 	
 	@Autowired
 	private PaymentClient paymentClient;
+	@Autowired
+	private NotificationClient notificationClient;
 	
 	@Autowired
 	private Decoder decoder;
 	
-	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,PaymentClient paymentClient,
+	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,
+			PaymentClient paymentClient,
+			NotificationClient notificationClient,
 			Decoder decoder) {
 		super();
 		this.orderRepository = orderRepository;
@@ -48,6 +54,7 @@ public class OrderService {
 		this.userClient=userClient;
 		this.paymentClient=paymentClient;
 		this.decoder=decoder;
+		this.notificationClient=notificationClient;
 	}
 	
 	public List<Order> getAllOrders(){
@@ -108,13 +115,31 @@ public class OrderService {
 
 		        if (response != null && "SUCCESS".equals(response.getStatus())) {
 		            savedOrder.setStatus("CONFIRMED");
+		            NotificationDTO dto = new NotificationDTO();
+		            dto.setEmail(user.getEmail());
+		            dto.setSubject("Order Confirmed");
+		            dto.setMessage("Your order is CONFIRMED");
+
+		            notificationClient.sendNotification(dto);
 		        } else {
 		            savedOrder.setStatus("FAILED");
+		            NotificationDTO dto = new NotificationDTO();
+		            dto.setEmail(user.getEmail());
+		            dto.setSubject("Order Failed");
+		            dto.setMessage("Your order FAILED");
+
+		            notificationClient.sendNotification(dto);
 		            bookClient.increaseStock(order.getBookId(), order.getQuantity());
 		        }
 
 		    } catch (Exception e) {
 		        savedOrder.setStatus("FAILED");
+		        NotificationDTO dto = new NotificationDTO();
+		        dto.setEmail(user.getEmail());
+		        dto.setSubject("Order Failed");
+		        dto.setMessage("Payment service error - order FAILED");
+
+		        notificationClient.sendNotification(dto);
 		        bookClient.increaseStock(order.getBookId(), order.getQuantity());
 		    }
 
