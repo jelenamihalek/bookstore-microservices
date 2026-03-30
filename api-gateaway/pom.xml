@@ -32,11 +32,7 @@
     <type>pom</type>
     <scope>import</scope>
    </dependency>
-     <dependecy>
-  <groupId>com.bookstore</groupId>
-	<artifactId>service-library</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	</dependecy>
+
   </dependencies>
  </dependencyManagement>
 

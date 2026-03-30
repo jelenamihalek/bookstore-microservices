@@ -15,6 +15,7 @@ public class Payment {
 	    private int id;
 
 	    private int orderId;
+	    private int userId;
 	    private double amount;
 	    private String status;
 	    
@@ -42,4 +43,11 @@ public class Payment {
 		public void setStatus(String status) {
 			this.status = status;
 		}
+		public int getUserId() {
+			return userId;
+		}
+		public void setUserId(int userId) {
+			this.userId = userId;
+		}
+		
 }

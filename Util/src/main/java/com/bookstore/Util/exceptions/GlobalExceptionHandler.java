@@ -129,4 +129,25 @@ public class GlobalExceptionHandler {
 	                    HttpStatus.FORBIDDEN
 	            ));
 	}
+	@ExceptionHandler(PaymentNotFoundException.class)
+	public ResponseEntity<?> handlePaymentNotFound(PaymentNotFoundException ex){
+
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Payment not found",
+	                    HttpStatus.NOT_FOUND
+	            ));
+	}
+
+	@ExceptionHandler(PaymentAccessDeniedException.class)
+	public ResponseEntity<?> handlePaymentAccess(PaymentAccessDeniedException ex){
+
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	            .body(new ExceptionModel(
+	                    ex.getMessage(),
+	                    "Access denied",
+	                    HttpStatus.FORBIDDEN
+	            ));
+	}
 }

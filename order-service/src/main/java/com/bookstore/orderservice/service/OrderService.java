@@ -110,6 +110,7 @@ public class OrderService {
 		        PaymentDTO payment = new PaymentDTO();
 		        payment.setOrderId(savedOrder.getId());
 		        payment.setAmount(book.getPrice() * order.getQuantity());
+		        payment.setUserId(user.getId());
 
 		        PaymentDTO response = paymentClient.processPayment(payment);
 
