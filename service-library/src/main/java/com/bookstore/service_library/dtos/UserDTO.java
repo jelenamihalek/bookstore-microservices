@@ -7,6 +7,8 @@ public class UserDTO {
 	public String password;
 	public String role;
 	
+	public UserDTO() {};
+	
 	public UserDTO(String email, String password, String role) {
 		super();
 		this.email = email;

@@ -1,4 +1,4 @@
-package com.bookstore.order_service;
+package com.bookstore.orderservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
