@@ -23,6 +23,7 @@ import com.bookstore.service_library.dtos.BookDTO;
 import com.bookstore.service_library.dtos.NotificationDTO;
 import com.bookstore.service_library.dtos.PaymentDTO;
 import com.bookstore.service_library.dtos.UserDTO;
+import com.bookstore.service_library.events.OrderNotificationEvent;
 
 @Service
 public class OrderService {
@@ -40,6 +41,9 @@ public class OrderService {
 	private PaymentClient paymentClient;
 	@Autowired
 	private NotificationClient notificationClient;
+	
+	@Autowired
+	private EventPublisher eventPublisher;
 	
 	@Autowired
 	private Decoder decoder;
@@ -64,8 +68,139 @@ public class OrderService {
 	        return orderRepository.findById(id)
 	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
 	    }
-	
-	 public Order createOrder(Order order,String authorization) {
+	 public Order createOrder(Order order, String authorization) {
+
+		    String email = decoder.decodeHeader(authorization);
+
+		    // 1. User
+		    UserDTO user = userClient.findByEmail(email);
+
+		    if (user == null) {
+		        throw new UserNotFoundByEmailException(
+		                "User not found",
+		                email
+		        );
+		    }
+
+		    if (order.getQuantity() <= 0) {
+		        throw new InvalidOrderException(
+		                "Quantity must be greater than 0"
+		        );
+		    }
+
+		    if (order.getBookId() <= 0) {
+		        throw new InvalidOrderException(
+		                "Invalid book ID"
+		        );
+		    }
+
+		    order.setUserId(user.getId());
+
+		    // 2. Book
+		    BookDTO book = bookClient.getBookById(
+		            order.getBookId()
+		    );
+
+		    if (book == null) {
+		        throw new BookNotFoundException(
+		                "Book not found",
+		                order.getBookId()
+		        );
+		    }
+
+		    if (book.getStock() < order.getQuantity()) {
+		        throw new InsufficientStockException(
+		                "Not enough stock",
+		                order.getQuantity(),
+		                book.getStock()
+		        );
+		    }
+
+		    // 3. Decrease stock
+		    bookClient.decreaseStock(
+		            order.getBookId(),
+		            order.getQuantity()
+		    );
+
+		    // 4. Initial status
+		    order.setStatus("PENDING");
+
+		    // 5. Save order
+		    Order savedOrder = orderRepository.save(order);
+
+		    try {
+
+		        // 6. Payment
+		        PaymentDTO payment = new PaymentDTO();
+		        payment.setOrderId(savedOrder.getId());
+		        payment.setAmount(
+		                book.getPrice() * order.getQuantity()
+		        );
+		        payment.setUserId(user.getId());
+
+		        PaymentDTO response =
+		                paymentClient.processPayment(payment);
+
+		        if (response != null &&
+		                "SUCCESS".equals(response.getStatus())) {
+
+		            savedOrder.setStatus("CONFIRMED");
+
+		            publishNotification(
+		                    user.getEmail(),
+		                    "Order Confirmed",
+		                    "Your order is CONFIRMED"
+		            );
+
+		        } else {
+
+		            savedOrder.setStatus("FAILED");
+
+		            publishNotification(
+		                    user.getEmail(),
+		                    "Order Failed",
+		                    "Your order FAILED"
+		            );
+
+		            bookClient.increaseStock(
+		                    order.getBookId(),
+		                    order.getQuantity()
+		            );
+		        }
+
+		    } catch (Exception e) {
+
+		        savedOrder.setStatus("FAILED");
+
+		        publishNotification(
+		                user.getEmail(),
+		                "Order Failed",
+		                "Payment service error - order FAILED"
+		        );
+
+		        bookClient.increaseStock(
+		                order.getBookId(),
+		                order.getQuantity()
+		        );
+		    }
+
+		    return orderRepository.save(savedOrder);
+		}
+	 
+	 private void publishNotification(
+		        String email,
+		        String subject,
+		        String message) {
+
+		    eventPublisher.publish(
+		            new OrderNotificationEvent(
+		                    email,
+		                    subject,
+		                    message
+		            )
+		    );
+		}
+	/* public Order createOrder(Order order,String authorization) {
 
 		 String email=decoder.decodeHeader(authorization);
 		    // 1. uzmi user iz users-service
@@ -145,7 +280,7 @@ public class OrderService {
 		    }
 
 		    return orderRepository.save(savedOrder);
-		}
+		}*/
 	 
 	public Order updateOrder(int id, Order updatedOrder) {
 
