@@ -24,6 +24,10 @@ jobs:
           cd Util
           mvn clean install -DskipTests
 
+      - name: Check Util Jar
+        run: |
+          ls -R ~/.m2/repository/com/bookstore
+
       - name: Install Service Library
         run: |
           cd service-library
