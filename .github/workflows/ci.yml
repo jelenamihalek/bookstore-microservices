@@ -37,3 +37,7 @@ jobs:
         run: |
           cd user-service
           mvn test
+
+      - name: Show Util Sources
+        run: |
+          find Util/src/main/java -type f
