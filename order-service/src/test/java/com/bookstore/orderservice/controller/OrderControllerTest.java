@@ -2,6 +2,7 @@ package com.bookstore.orderservice.controller;
 
 import com.bookstore.orderservice.controllers.OrderController;
 import com.bookstore.orderservice.models.Order;
+import com.bookstore.orderservice.service.EventPublisher;
 import com.bookstore.orderservice.service.OrderService;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class OrderControllerTest {
 
     @MockBean
     private OrderService orderService;
+    
+    @MockBean
+    private EventPublisher eventPublisher;
 
     // ✅ CREATE ORDER
     @Test

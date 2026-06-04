@@ -51,7 +51,7 @@ public class OrderService {
 	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,
 			PaymentClient paymentClient,
 			NotificationClient notificationClient,
-			Decoder decoder) {
+			Decoder decoder, EventPublisher eventPublisher) {
 		super();
 		this.orderRepository = orderRepository;
 		this.bookClient=bookClient;
@@ -59,6 +59,8 @@ public class OrderService {
 		this.paymentClient=paymentClient;
 		this.decoder=decoder;
 		this.notificationClient=notificationClient;
+		  this.eventPublisher = eventPublisher;
+	
 	}
 	
 	public List<Order> getAllOrders(){

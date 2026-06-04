@@ -28,7 +28,7 @@ class OrderServiceTest {
     @Mock private PaymentClient paymentClient;
     @Mock private NotificationClient notificationClient;
     @Mock private Decoder decoder;
-
+    @Mock private EventPublisher eventPublisher;
     @InjectMocks
     private OrderService orderService;
 
@@ -64,7 +64,9 @@ class OrderServiceTest {
         Order result = orderService.createOrder(order, "token");
 
         assertEquals("CONFIRMED", result.getStatus());
-        verify(notificationClient).sendNotification(any());
+       // verify(notificationClient).sendNotification(any());
+        verify(eventPublisher)
+        .publish(any());
     }
 
     // ❌ USER NOT FOUND
