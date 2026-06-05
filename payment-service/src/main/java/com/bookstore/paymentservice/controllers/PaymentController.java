@@ -54,4 +54,11 @@ public class PaymentController {
     public void delete(@PathVariable int id) {
         paymentService.deletePayment(id);
     }
+    
+    @GetMapping("/status/{status}")
+    public List<Payment> getByStatus(
+            @PathVariable String status) {
+
+        return paymentService.getPaymentsByStatus(status);
+    }
 }

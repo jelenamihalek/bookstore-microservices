@@ -1,5 +1,7 @@
 package com.bookstore.paymentservice.models;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,7 +20,9 @@ public class Payment {
 	    private int userId;
 	    private double amount;
 	    private String status;
-	    
+	    private LocalDateTime paymentDate;
+	    private String transactionReference;
+
 		public int getId() {
 			return id;
 		}
@@ -49,5 +53,19 @@ public class Payment {
 		public void setUserId(int userId) {
 			this.userId = userId;
 		}
+	
+		public LocalDateTime getPaymentDate() {
+			return paymentDate;
+		}
+		public void setPaymentDate(LocalDateTime paymentDate) {
+			this.paymentDate = paymentDate;
+		}
+		public String getTransactionReference() {
+			return transactionReference;
+		}
+		public void setTransactionReference(String transactionReference) {
+			this.transactionReference = transactionReference;
+		}
+		
 		
 }

@@ -10,7 +10,9 @@ import com.bookstore.service_library.clients.UserClient;
 import com.bookstore.service_library.decoder.Decoder;
 import com.bookstore.service_library.dtos.UserDTO;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,9 @@ public class PaymentService {
 		}
 
 	    public Payment processPayment(Payment payment) {
+	    	
+	    	payment.setPaymentDate(LocalDateTime.now());
+	    	payment.setTransactionReference(UUID.randomUUID().toString());
 
 	        // simulacija (80% success)
 	        if (Math.random() > 0.2) {
@@ -102,5 +107,9 @@ public class PaymentService {
 	                .orElseThrow(() -> new PaymentNotFoundException("Payment not found", id));
 
 	        paymentRepository.delete(payment);
+	    }
+	    
+	    public List<Payment> getPaymentsByStatus(String status) {
+	        return paymentRepository.findByStatus(status);
 	    }
 }
