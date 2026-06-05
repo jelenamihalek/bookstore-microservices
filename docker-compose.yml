@@ -1,0 +1,106 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: bookstore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  discovery-service:
+    image: discovery-service:latest
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    image: api-gateaway:latest
+    container_name: api-gateaway
+    ports:
+      - "8765:8765"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - discovery-service
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    ports:
+      - "8100:8100"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - postgres
+      - discovery-service
+
+  order-service:
+    image: order-service:latest
+    container_name: order-service
+    ports:
+      - "8200:8200"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - postgres
+      - discovery-service
+
+  book-service:
+    image: book-service:latest
+    container_name: book-service
+    ports:
+      - "8300:8300"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - postgres
+      - discovery-service
+
+  payment-service:
+    image: payment-service:latest
+    container_name: payment-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - postgres
+      - discovery-service
+
+  notification-service:
+    image: notification-service:latest
+    container_name: notification-service
+    ports:
+      - "8400:8400"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    depends_on:
+      - postgres
+      - rabbitmq
+      - discovery-service
