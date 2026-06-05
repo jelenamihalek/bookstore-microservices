@@ -237,3 +237,62 @@ Korišćenje RabbitMQ-a donosi nekoliko značajnih prednosti:
 - efikasniju obradu zadataka koji ne zahtevaju trenutni odgovor korisniku.
 
 Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema.
+
+# 5. Kontinuirana integracija (CI) korišćenjem GitHub Actions
+
+U okviru projekta implementiran je proces kontinuirane integracije (Continuous Integration – CI) korišćenjem GitHub Actions platforme. Cilj ovog procesa je automatska provera ispravnosti sistema nakon svake izmene koda koja se šalje na Git repozitorijum. Kontinuirana integracija omogućava rano otkrivanje grešaka i osigurava da sve komponente sistema ostanu međusobno kompatibilne tokom razvoja. Na ovaj način se smanjuje mogućnost unošenja neispravnog koda u glavnu granu projekta i povećava pouzdanost celokupnog sistema.
+
+## 5.1 GitHub Actions workflow
+
+Za potrebe projekta kreiran je GitHub Actions workflow koji se automatski pokreće prilikom slanja izmena na glavnu granu repozitorijuma (main). Prilikom izvršavanja workflow-a automatski se pokreće virtuelno Linux okruženje u okviru kojeg se izvršavaju svi definisani koraci procesa izgradnje i testiranja sistema.
+
+Workflow obavlja sledeće aktivnosti:
+
+- preuzimanje izvornog koda iz Git repozitorijuma,
+- instalaciju Java 17 okruženja,
+- pokretanje PostgreSQL baze podataka kao servisnog kontejnera,
+- pokretanje RabbitMQ servisa,
+- instalaciju zajedničkih biblioteka (Util i Service Library),
+- kompajliranje mikroservisa,
+- izvršavanje testova za sve implementirane servise.
+
+Na ovaj način se proverava da li je projekat moguće uspešno izgraditi i pokrenuti bez ručne intervencije.
+
+## 5.2 Automatizovano testiranje
+
+Nakon uspešne instalacije svih zavisnosti, workflow pokreće testove za svaki mikroservis pojedinačno.
+
+Tokom procesa testiranja proveravaju se:
+
+- poslovna logika servisa,
+- ispravnost REST kontrolera,
+- komunikacija između slojeva aplikacije,
+- validacija ulaznih podataka,
+- obrada izuzetaka,
+- rad integracionih testova.
+
+Automatskim izvršavanjem testova nakon svake izmene koda obezbeđuje se da postojeće funkcionalnosti ostanu ispravne i nakon dodavanja novih funkcionalnosti ili refaktorisanja koda.
+
+## 5.3 Servisi korišćeni tokom CI procesa
+
+Pojedini mikroservisi zahtevaju dodatne infrastrukturne komponente kako bi testovi mogli uspešno da se izvrše.
+
+Zbog toga se tokom CI procesa automatski pokreću:
+
+- PostgreSQL baza podataka koja se koristi za čuvanje podataka mikroservisa. Tokom pokretanja workflow-a kreira se privremena baza podataka koja se koristi isključivo za potrebe testiranja.
+- RabbitMQ servis koji sekoristi za asinhronu komunikaciju između mikroservisa. Tokom izvršavanja testova omogućava simulaciju slanja i prijema događaja između servisa bez potrebe za ručnim pokretanjem brokerskog sistema.
+
+## 5.4 Prednosti implementiranog rešenja
+
+Implementacijom kontinuirane integracije ostvarene su sledeće prednosti:
+
+- automatska provera ispravnosti sistema nakon svake izmene,
+- rano otkrivanje grešaka tokom razvoja,
+- smanjenje potrebe za ručnim testiranjem osnovnih funkcionalnosti,
+- povećanje stabilnosti sistema,
+- jednostavnije održavanje i dalji razvoj projekta,
+- veća pouzdanost mikroservisne arhitekture.
+
+Na ovaj način je obezbeđen dodatni nivo kontrole kvaliteta softvera i unapređen celokupan proces razvoja
+
+### moram dovrsiti ovo poglavlje
