@@ -30,7 +30,7 @@ class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
-    // ✅ REGISTER
+    //  REGISTER
     @Test
     void shouldRegisterUserSuccessfully() {
         User user = new User("test@gmail.com", "123", null);
