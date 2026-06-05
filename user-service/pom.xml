@@ -8,7 +8,9 @@
 		<version>3.3.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-
+	<groupId>com.bookstore</groupId>
+	<artifactId>user-service</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>user-service</name>
 	<description>Service for managing users</description>
 	<url/>
@@ -44,11 +46,7 @@
  </dependencyManagement>
 
 	<dependencies>
-	<dependency>
-		<groupId>com.bookstore</groupId>
-	<artifactId>Util</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	</dependency>
+	
 	 <!-- Testiranje -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
