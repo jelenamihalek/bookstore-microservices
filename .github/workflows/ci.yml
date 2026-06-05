@@ -9,6 +9,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bookstore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,14 +34,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Wait for PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+          until pg_isready -h localhost -p 5432 -U postgres
+          do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
       - name: Install Util
         run: |
           cd Util
           mvn clean install -DskipTests
-
-      - name: Check Util Jar
-        run: |
-          jar tf ~/.m2/repository/com/bookstore/Util/0.0.1-SNAPSHOT/Util-0.0.1-SNAPSHOT.jar
 
       - name: Install Service Library
         run: |
@@ -34,10 +56,15 @@ jobs:
           mvn clean install -DskipTests
 
       - name: Run User Service Tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bookstore
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+
+          EUREKA_CLIENT_ENABLED: false
+          EUREKA_CLIENT_REGISTER_WITH_EUREKA: false
+          EUREKA_CLIENT_FETCH_REGISTRY: false
+
         run: |
           cd user-service
           mvn test
-
-      - name: Show Util Sources
-        run: |
-          find Util/src/main/java -type f
