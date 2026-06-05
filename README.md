@@ -208,13 +208,13 @@ Prednosti ovakvog pristupa su:
 - automatska integracija sa Eureka Discovery Server komponentom,
 - lakše proširenje sistema novim servisima.
 
-Međutim, sinhrona komunikacija podrazumeva da servis koji poziva drugi servis mora da sačeka odgovor pre nastavka izvršavanja, zbog čega se koristi samo kada je odgovor neophodan za nastavak poslovnog procesa.
+Međutim, sinhrona komunikacija podrazumeva da servis koji poziva drugi servis mora da sačeka odgovor pre nastavka izvršavanja, zbog čega se koristi samo kada je odgovor neophodan za nastavak poslovnog procesa. OpenFeign klijenti koriste Eureka Discovery Server za pronalaženje instanci servisa, zbog čega nije potrebno definisati fizičke adrese mikroservisa unutar aplikacionog koda.
 
 ### 4.2 Asinhrona komunikacija
 
 Pored sinhrone komunikacije, sistem koristi i asinhronu komunikaciju zasnovanu na RabbitMQ message broker-u.
 
-Ovakav pristup primenjen je za slanje notifikacija nakon uspešno obrađene porudžbine. Za razliku od sinhronog pristupa, servis koji šalje poruku ne mora da čeka da druga strana obradi zahtev, već samo prosleđuje događaj brokeru i nastavlja sa izvršavanjem. Nakon što Order Service uspešno završi obradu porudžbine, kreira se događaj koji sadrži informacije potrebne za slanje notifikacije korisniku. Taj događaj se zatim objavljuje u RabbitMQ queue pod nazivom _notification.queue_.
+Ovakav pristup primenjen je za slanje notifikacija nakon uspešno obrađene porudžbine. Za razliku od sinhronog pristupa, servis koji šalje poruku ne mora da čeka da druga strana obradi zahtev, već samo prosleđuje događaj brokeru i nastavlja sa izvršavanjem. Nakon završetka procesa obrade porudžbine, Order Service kreira događaj koji sadrži informacije potrebne za slanje notifikacije korisniku, bez obzira na to da li je porudžbina uspešno realizovana ili je došlo do neuspešnog plaćanja.
 
 RabbitMQ preuzima odgovornost za čuvanje i prosleđivanje poruke odgovarajućem potrošaču. Notification Service sluša definisani queue i preuzima poruke čim postanu dostupne. Nakon prijema događaja, Notification Service obrađuje pristigle podatke i kreira email poruku koja se šalje korisniku putem SMTP servera. Tokom razvoja i testiranja sistema korišćen je Mailtrap servis kako bi se simuliralo slanje email poruka bez potrebe za korišćenjem stvarnog email servera.
 
@@ -236,7 +236,7 @@ Korišćenje RabbitMQ-a donosi nekoliko značajnih prednosti:
 - jednostavnije skaliranje servisa za notifikacije,
 - efikasniju obradu zadataka koji ne zahtevaju trenutni odgovor korisniku.
 
-Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema.
+Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema. Nakon završetka procesa obrade porudžbine, Order Service kreira događaj koji sadrži informacije potrebne za slanje notifikacije korisniku, bez obzira na to da li je porudžbina uspešno realizovana ili je došlo do neuspešnog plaćanja.
 
 # 5. Kontinuirana integracija (CI) korišćenjem GitHub Actions
 
@@ -296,3 +296,74 @@ Implementacijom kontinuirane integracije ostvarene su sledeće prednosti:
 Na ovaj način je obezbeđen dodatni nivo kontrole kvaliteta softvera i unapređen celokupan proces razvoja
 
 ### moram dovrsiti ovo poglavlje
+
+# 6. Deployment i pokretanje sistema
+
+## 6.1. Pokretanje sistema u razvojnom okruženju (Development)
+
+Tokom razvoja mikroservisi se mogu pokretati direktno iz razvojnog okruženja kao Spring Boot aplikacije. Ovakav način rada omogućava jednostavnije testiranje i razvoj pojedinačnih komponenti sistema bez potrebe za korišćenjem Docker okruženja.
+
+Pre pokretanja mikroservisa potrebno je obezbediti da su dostupne sve infrastrukturne komponente od kojih sistem zavisi. To podrazumeva pokretanje PostgreSQL baze podataka i RabbitMQ message broker-a. Nakon toga potrebno je pokrenuti Eureka Discovery Server koji omogućava registraciju i međusobno pronalaženje mikroservisa.
+
+Nakon uspešnog pokretanja Eureka servera, mikroservisi se pokreću sledećim redosledom:
+
+1. User Service
+2. Book Service
+3. Payment Service
+4. Notification Service
+5. Order Service
+6. API Gateway
+
+Prilikom pokretanja svaki mikroservis se automatski registruje u Eureka Discovery Server-u i postaje dostupan ostalim komponentama sistema.
+
+Nakon što su svi servisi uspešno pokrenuti, sistem je dostupan preko API Gateway komponente koja predstavlja jedinstvenu ulaznu tačku za sve klijentske zahteve.
+
+Status registrovanih servisa moguće je proveriti putem Eureka Dashboard-a na adresi: http://localhost:8761 . API Gateway dostupan na adresi: http://localhost:8765
+
+## 6.2. Docker kontejnerizacija i Docker Compose orkestracija
+
+Radi jednostavnijeg pokretanja i distribucije sistema, sve komponente mikroservisne arhitekture kontejnerizovane su korišćenjem Docker tehnologije. Za svaki mikroservis kreiran je poseban Docker image, dok se za upravljanje kompletnim okruženjem koristi Docker Compose.
+
+Pre prvog pokretanja sistema potrebno je izgraditi Docker image za svaki mikroservis. Izgradnja se vrši korišćenjem Docker build komande unutar direktorijuma odgovarajućeg servisa.
+
+Primer: docker build -t user-service . / docker build -t book-service . / docker build -t order-service . itd.
+
+Nakon izgradnje svih image-a, kompletan mikroservisni sistem može se pokrenuti korišćenjem Docker Compose konfiguracije: docker compose up
+
+Prilikom izvršavanja ove komande automatski se pokreću sve komponente sistema:
+
+- PostgreSQL baza podataka
+- RabbitMQ message broker
+- Eureka Discovery Server
+- API Gateway
+- User Service
+- Book Service
+- Order Service
+- Payment Service
+- Notification Service
+
+Docker Compose automatski kreira zajedničku mrežu između kontejnera, omogućava međusobnu komunikaciju servisa i obezbeđuje pravilno pokretanje zavisnih komponenti sistema.
+
+Nakon uspešnog pokretanja moguće je proveriti registraciju servisa putem Eureka Dashboard-a na adresi http://localhost:8761, dok se svi funkcionalni zahtevi prosleđuju preko API Gateway komponente dostupne na adresi http://localhost:8765.
+
+## 6.3. Service Discovery
+
+Za registraciju i pronalaženje mikroservisa koristi se Eureka Discovery Server. Nakon pokretanja sistema, Eureka Dashboard je dostupan na adresi: http://localhost:8761
+
+Putem ove konzole moguće je pratiti status svih registrovanih mikroservisa i proveriti njihovu dostupnost u sistemu.
+
+## 6.4. API Gateway
+
+Svi zahtevi korisnika prolaze kroz API Gateway komponentu koja predstavlja jedinstvenu ulaznu tačku sistema. Gateway vrši: rutiranje zahteva ka odgovarajućim mikroservisima, autentifikaciju i autorizaciju korisnika i komunikaciju sa Eureka Discovery Server-om radi pronalaženja instanci servisa. API Gateway je dostupan na adresi: http://localhost:8765
+
+## 6.5. Produkciono okruženje
+
+Arhitektura sistema je projektovana prema principima modernih mikroservisnih aplikacija i spremna je za produkciono okruženje.
+
+Sistem koristi: Spring Cloud Eureka za Service Discovery, API Gateway za centralizovano rutiranje zahteva, Docker kontejnere za izolaciju i jednostavniji deployment, RabbitMQ za asinhronu komunikaciju između mikroservisa i PostgreSQL bazu podataka za trajno čuvanje podataka.
+
+Kao potencijalna buduća unapređenja predviđeni su:
+
+- Kubernetes deployment,
+- Prometheus i Grafana monitoring,
+- napredne CI/CD strategije za automatski deployment.
