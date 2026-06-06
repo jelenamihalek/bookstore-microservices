@@ -12,8 +12,6 @@ Komunikacija između mikroservisa realizovana je kombinacijom sinhronog i asinhr
 
 Cilj projekta jeste demonstracija primene savremenih tehnologija i obrazaca razvoja distribuiranih sistema kroz implementaciju funkcionalne mikroservisne aplikacije koja objedinjuje više poslovnih procesa u jedinstven informacioni sistem.
 
----
-
 ## 2. Opis poslovne logike sistema
 
 Poslovna logika sistema zasniva se na simulaciji rada online knjižare koja korisnicima omogućava pregled dostupnih knjiga, kreiranje porudžbina, obradu plaćanja i dobijanje obaveštenja o statusu porudžbine. Sistem je podeljen na više međusobno povezanih mikroservisa, pri čemu je svaki servis odgovoran za određeni segment poslovnog procesa. Na taj način postiže se jasno razdvajanje odgovornosti, jednostavnije održavanje sistema i lakše proširivanje funkcionalnosti.
@@ -66,8 +64,6 @@ Kompletan poslovni proces obrade porudžbine sastoji se od sledećih koraka:
 10. Korisniku se šalje email obaveštenje o rezultatu porudžbine.
 
 Opisani proces predstavlja centralnu poslovnu funkcionalnost sistema i povezuje sve ključne mikroservise u jedinstvenu poslovnu celinu.
-
----
 
 ## 3. Arhitektura sistema
 
@@ -193,8 +189,6 @@ Pored slanja email poruka, servis evidentira informacije o poslatim notifikacija
 
 Korišćenjem asinhrone komunikacije postiže se veća otpornost sistema, jer proces slanja email poruka ne utiče direktno na brzinu obrade porudžbine. Ukoliko servis za slanje notifikacija trenutno nije dostupan, poruka ostaje sačuvana u RabbitMQ redu i biće obrađena nakon ponovnog uspostavljanja rada servisa.
 
----
-
 ## 4. Komunikacija između mikroservisa
 
 Jedna od ključnih karakteristika ovog sistema jeste korišćenje različitih tipova komunikacije između mikroservisa, u zavisnosti od poslovnih zahteva i prirode same operacije. U okviru sistema implementirane su i sinhrona i asinhrona komunikacija, čime je postignuta bolja modularnost, skalabilnost i otpornost sistema.
@@ -245,8 +239,6 @@ Korišćenje RabbitMQ-a donosi nekoliko značajnih prednosti:
 - efikasniju obradu zadataka koji ne zahtevaju trenutni odgovor korisniku.
 
 Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema.
-
----
 
 ## 5. Kontinuirana integracija (CI) korišćenjem GitHub Actions
 
@@ -304,8 +296,6 @@ Implementacijom kontinuirane integracije ostvarene su sledeće prednosti:
 - veća pouzdanost mikroservisne arhitekture.
 
 Na ovaj način je obezbeđen dodatni nivo kontrole kvaliteta softvera i unapređen celokupan proces razvoja sistema.
-
----
 
 ## 6. Deployment i pokretanje sistema
 
@@ -400,8 +390,6 @@ Sistem koristi:
 - PostgreSQL bazu podataka za trajno čuvanje podataka
 
 Kao potencijalna buduća unapređenja predviđeni su: Kubernetes deployment, Prometheus i Grafana monitoring i napredne CI/CD strategije za automatski deployment.
-
----
 
 ## 7. Kredencijali i konfiguracija
 
