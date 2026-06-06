@@ -370,12 +370,37 @@ Nakon uspešnog pokretanja moguće je proveriti registraciju servisa putem Eurek
 ### 6.3 Service Discovery
 
 Za registraciju i pronalaženje mikroservisa koristi se Eureka Discovery Server. Nakon pokretanja sistema, Eureka Dashboard je dostupan na adresi: `http://localhost:8761`
-
 Putem ove konzole moguće je pratiti status svih registrovanih mikroservisa i proveriti njihovu dostupnost u sistemu.
 
 ### 6.4 API Gateway
 
 Svi zahtevi korisnika prolaze kroz API Gateway komponentu koja predstavlja jedinstvenu ulaznu tačku sistema. Gateway vrši rutiranje zahteva ka odgovarajućim mikroservisima, autentifikaciju i autorizaciju korisnika i komunikaciju sa Eureka Discovery Server-om radi pronalaženja instanci servisa. API Gateway je dostupan na adresi: `http://localhost:8765`
+
+### 6.5. Docker Hub Registry
+
+Nakon izgradnje Docker image-a, oni mogu biti objavljeni na Docker Hub registru radi jednostavnije distribucije i deployment-a sistema.
+
+Docker Hub predstavlja centralni registar Docker image-a koji omogućava čuvanje, verzionisanje i distribuciju kontejnerizovanih aplikacija. Objavljivanjem image-a na Docker Hub omogućeno je preuzimanje i pokretanje mikroservisa na različitim računarima i serverskim okruženjima bez potrebe za ponovnim build-ovanjem izvornog koda.
+
+Proces distribucije mikroservisa zasnovan je na sledećem principu: Build → Docker Image → Docker Hub → Deployment(nije odrađen)
+
+Nakon uspešne izgradnje Docker image-a, image se može objaviti na Docker Hub registar korišćenjem Docker push komande. Na ciljnom okruženju dovoljno je preuzeti odgovarajući image korišćenjem Docker pull komande i pokrenuti ga kao kontejner ili kao deo Docker Compose konfiguracije.
+
+Korišćenje Docker Hub registra donosi nekoliko značajnih prednosti:
+
+- centralizovano skladištenje Docker image-a,
+- jednostavniju distribuciju aplikacije,
+- brže postavljanje sistema na nova okruženja,
+- mogućnost verzionisanja i upravljanja različitim verzijama servisa,
+- jednostavniju integraciju sa CI/CD procesima.
+
+U okviru projekta Docker image-i mikroservisa objavljeni su na Docker Hub registru, čime je omogućeno njihovo jednostavno preuzimanje i pokretanje na drugim računarima i serverskim okruženjima korišćenjem standardnih Docker komandi. Automatski deployment na produkciono okruženje nije implementiran i predstavlja potencijalno unapređenje sistema u budućem razvoju projekta.
+
+```bash
+docker pull jelenamihalek/book-service-bookstore:latest
+docker pull jelenamihalek/user-service-bookstore:latest
+docker pull jelenamihalek/order-service-bookstore:latest
+```
 
 ### 6.5 Produkciono okruženje
 
