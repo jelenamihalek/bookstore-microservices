@@ -100,13 +100,3 @@ jobs:
         run: |
           cd notification-service
           mvn test
-
-      - name: Build Docker Images
-        run: |
-          docker build -t discovery-service ./discovery-service
-          docker build -t api-gateaway ./api-gateaway
-          docker build -t user-service ./user-service
-          docker build -t book-service ./book-service
-          docker build -t order-service ./order-service
-          docker build -t payment-service ./payment-service
-          docker build -t notification-service ./notification-service
