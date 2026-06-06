@@ -12,6 +12,8 @@ Komunikacija između mikroservisa realizovana je kombinacijom sinhronog i asinhr
 
 Cilj projekta jeste demonstracija primene savremenih tehnologija i obrazaca razvoja distribuiranih sistema kroz implementaciju funkcionalne mikroservisne aplikacije koja objedinjuje više poslovnih procesa u jedinstven informacioni sistem.
 
+---
+
 ## 2. Opis poslovne logike sistema
 
 Poslovna logika sistema zasniva se na simulaciji rada online knjižare koja korisnicima omogućava pregled dostupnih knjiga, kreiranje porudžbina, obradu plaćanja i dobijanje obaveštenja o statusu porudžbine. Sistem je podeljen na više međusobno povezanih mikroservisa, pri čemu je svaki servis odgovoran za određeni segment poslovnog procesa. Na taj način postiže se jasno razdvajanje odgovornosti, jednostavnije održavanje sistema i lakše proširivanje funkcionalnosti.
@@ -22,8 +24,7 @@ Upravljanje korisnicima predstavlja jednu od osnovnih funkcionalnosti sistema. Z
 
 ### 2.2 Upravljanje knjigama
 
-Sistem omogućava upravljanje katalogom knjiga koje su dostupne za kupovinu. Za svaku knjigu evidentiraju se osnovni podaci, uključujući naziv, autora, cenu i količinu dostupnu na stanju. Korisnici mogu pregledati dostupne knjige, dok se tokom procesa poručivanja vrši dodatna provera postojanja knjige i raspoložive količine. Ukoliko knjiga nije pronađena ili tražena količina premašuje trenutno stanje na lageru, porudžbina se ne može realizovati.
-Ovakav pristup omogućava održavanje tačnih podataka o dostupnim knjigama i sprečava prodaju artikala koji nisu na stanju.
+Sistem omogućava upravljanje katalogom knjiga koje su dostupne za kupovinu. Za svaku knjigu evidentiraju se osnovni podaci, uključujući naziv, autora, cenu i količinu dostupnu na stanju. Korisnici mogu pregledati dostupne knjige, dok se tokom procesa poručivanja vrši dodatna provera postojanja knjige i raspoložive količine. Ukoliko knjiga nije pronađena ili tražena količina premašuje trenutno stanje na lageru, porudžbina se ne može realizovati. Ovakav pristup omogućava održavanje tačnih podataka o dostupnim knjigama i sprečava prodaju artikala koji nisu na stanju.
 
 ### 2.3 Kreiranje porudžbine
 
@@ -65,6 +66,8 @@ Kompletan poslovni proces obrade porudžbine sastoji se od sledećih koraka:
 10. Korisniku se šalje email obaveštenje o rezultatu porudžbine.
 
 Opisani proces predstavlja centralnu poslovnu funkcionalnost sistema i povezuje sve ključne mikroservise u jedinstvenu poslovnu celinu.
+
+---
 
 ## 3. Arhitektura sistema
 
@@ -183,9 +186,12 @@ Izdvajanjem procesa plaćanja u zaseban mikroservis ostvarena je jasna podela od
 Notification Service zadužen je za slanje obaveštenja korisnicima nakon završetka procesa obrade porudžbine.
 
 Za razliku od ostalih servisa koji koriste sinhronu komunikaciju, Notification Service komunicira sa Order Service servisom putem RabbitMQ message broker-a. Nakon uspešno obrađene porudžbine ili neuspešne transakcije, Order Service generiše događaj koji se smešta u RabbitMQ red poruka. Notification Service preuzima poruku iz reda, obrađuje primljene podatke i korisniku šalje odgovarajuće email obaveštenje.
+
 Pored slanja email poruka, servis evidentira informacije o poslatim notifikacijama, uključujući status uspešnosti slanja. Na taj način omogućeno je praćenje istorije notifikacija i lakše otkrivanje eventualnih problema tokom rada sistema.
 
 Korišćenjem asinhrone komunikacije postiže se veća otpornost sistema, jer proces slanja email poruka ne utiče direktno na brzinu obrade porudžbine. Ukoliko servis za slanje notifikacija trenutno nije dostupan, poruka ostaje sačuvana u RabbitMQ redu i biće obrađena nakon ponovnog uspostavljanja rada servisa.
+
+---
 
 ## 4. Komunikacija između mikroservisa
 
@@ -236,15 +242,17 @@ Korišćenje RabbitMQ-a donosi nekoliko značajnih prednosti:
 - jednostavnije skaliranje servisa za notifikacije,
 - efikasniju obradu zadataka koji ne zahtevaju trenutni odgovor korisniku.
 
-Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema. Nakon završetka procesa obrade porudžbine, Order Service kreira događaj koji sadrži informacije potrebne za slanje notifikacije korisniku, bez obzira na to da li je porudžbina uspešno realizovana ili je došlo do neuspešnog plaćanja.
+Kombinacijom sinhrone i asinhrone komunikacije ostvarena je fleksibilna arhitektura koja omogućava efikasnu realizaciju poslovnih procesa uz zadržavanje visokog nivoa modularnosti i proširivosti sistema.
 
-# 5. Kontinuirana integracija (CI) korišćenjem GitHub Actions
+---
+
+## 5. Kontinuirana integracija (CI) korišćenjem GitHub Actions
 
 U okviru projekta implementiran je proces kontinuirane integracije (Continuous Integration – CI) korišćenjem GitHub Actions platforme. Cilj ovog procesa je automatska provera ispravnosti sistema nakon svake izmene koda koja se šalje na Git repozitorijum. Kontinuirana integracija omogućava rano otkrivanje grešaka i osigurava da sve komponente sistema ostanu međusobno kompatibilne tokom razvoja. Na ovaj način se smanjuje mogućnost unošenja neispravnog koda u glavnu granu projekta i povećava pouzdanost celokupnog sistema.
 
-## 5.1 GitHub Actions workflow
+### 5.1 GitHub Actions workflow
 
-Za potrebe projekta kreiran je GitHub Actions workflow koji se automatski pokreće prilikom slanja izmena na glavnu granu repozitorijuma (main). Prilikom izvršavanja workflow-a automatski se pokreće virtuelno Linux okruženje u okviru kojeg se izvršavaju svi definisani koraci procesa izgradnje i testiranja sistema.
+Za potrebe projekta kreiran je GitHub Actions workflow koji se automatski pokreće prilikom slanja izmena na glavnu granu repozitorijuma (`main`). Prilikom izvršavanja workflow-a automatski se pokreće virtuelno Linux okruženje u okviru kojeg se izvršavaju svi definisani koraci procesa izgradnje i testiranja sistema.
 
 Workflow obavlja sledeće aktivnosti:
 
@@ -258,7 +266,7 @@ Workflow obavlja sledeće aktivnosti:
 
 Na ovaj način se proverava da li je projekat moguće uspešno izgraditi i pokrenuti bez ručne intervencije.
 
-## 5.2 Automatizovano testiranje
+### 5.2 Automatizovano testiranje
 
 Nakon uspešne instalacije svih zavisnosti, workflow pokreće testove za svaki mikroservis pojedinačno.
 
@@ -273,16 +281,16 @@ Tokom procesa testiranja proveravaju se:
 
 Automatskim izvršavanjem testova nakon svake izmene koda obezbeđuje se da postojeće funkcionalnosti ostanu ispravne i nakon dodavanja novih funkcionalnosti ili refaktorisanja koda.
 
-## 5.3 Servisi korišćeni tokom CI procesa
+### 5.3 Servisi korišćeni tokom CI procesa
 
 Pojedini mikroservisi zahtevaju dodatne infrastrukturne komponente kako bi testovi mogli uspešno da se izvrše.
 
 Zbog toga se tokom CI procesa automatski pokreću:
 
-- PostgreSQL baza podataka koja se koristi za čuvanje podataka mikroservisa. Tokom pokretanja workflow-a kreira se privremena baza podataka koja se koristi isključivo za potrebe testiranja.
-- RabbitMQ servis koji sekoristi za asinhronu komunikaciju između mikroservisa. Tokom izvršavanja testova omogućava simulaciju slanja i prijema događaja između servisa bez potrebe za ručnim pokretanjem brokerskog sistema.
+- **PostgreSQL** baza podataka koja se koristi za čuvanje podataka mikroservisa. Tokom pokretanja workflow-a kreira se privremena baza podataka koja se koristi isključivo za potrebe testiranja.
+- **RabbitMQ** servis koji se koristi za asinhronu komunikaciju između mikroservisa. Tokom izvršavanja testova omogućava simulaciju slanja i prijema događaja između servisa bez potrebe za ručnim pokretanjem brokerskog sistema.
 
-## 5.4 Prednosti implementiranog rešenja
+### 5.4 Prednosti implementiranog rešenja
 
 Implementacijom kontinuirane integracije ostvarene su sledeće prednosti:
 
@@ -293,13 +301,13 @@ Implementacijom kontinuirane integracije ostvarene su sledeće prednosti:
 - jednostavnije održavanje i dalji razvoj projekta,
 - veća pouzdanost mikroservisne arhitekture.
 
-Na ovaj način je obezbeđen dodatni nivo kontrole kvaliteta softvera i unapređen celokupan proces razvoja
+Na ovaj način je obezbeđen dodatni nivo kontrole kvaliteta softvera i unapređen celokupan proces razvoja sistema.
 
-### moram dovrsiti ovo poglavlje
+---
 
-# 6. Deployment i pokretanje sistema
+## 6. Deployment i pokretanje sistema
 
-## 6.1. Pokretanje sistema u razvojnom okruženju (Development)
+### 6.1 Pokretanje sistema u razvojnom okruženju (Development)
 
 Tokom razvoja mikroservisi se mogu pokretati direktno iz razvojnog okruženja kao Spring Boot aplikacije. Ovakav način rada omogućava jednostavnije testiranje i razvoj pojedinačnih komponenti sistema bez potrebe za korišćenjem Docker okruženja.
 
@@ -318,17 +326,38 @@ Prilikom pokretanja svaki mikroservis se automatski registruje u Eureka Discover
 
 Nakon što su svi servisi uspešno pokrenuti, sistem je dostupan preko API Gateway komponente koja predstavlja jedinstvenu ulaznu tačku za sve klijentske zahteve.
 
-Status registrovanih servisa moguće je proveriti putem Eureka Dashboard-a na adresi: http://localhost:8761 . API Gateway dostupan na adresi: http://localhost:8765
+| Servis               | URL                    |
+| -------------------- | ---------------------- |
+| Eureka Dashboard     | http://localhost:8761  |
+| API Gateway          | http://localhost:8765  |
+| User Service         | http://localhost:8100  |
+| Book Service         | http://localhost:8300  |
+| Order Service        | http://localhost:8200  |
+| Payment Service      | http://localhost:8081  |
+| Notification Service | http://localhost:8400  |
+| RabbitMQ Management  | http://localhost:15672 |
 
-## 6.2. Docker kontejnerizacija i Docker Compose orkestracija
+### 6.2 Docker kontejnerizacija i Docker Compose orkestracija
 
 Radi jednostavnijeg pokretanja i distribucije sistema, sve komponente mikroservisne arhitekture kontejnerizovane su korišćenjem Docker tehnologije. Za svaki mikroservis kreiran je poseban Docker image, dok se za upravljanje kompletnim okruženjem koristi Docker Compose.
 
-Pre prvog pokretanja sistema potrebno je izgraditi Docker image za svaki mikroservis. Izgradnja se vrši korišćenjem Docker build komande unutar direktorijuma odgovarajućeg servisa.
+Pre prvog pokretanja sistema potrebno je izgraditi Docker image za svaki mikroservis unutar odgovarajućeg direktorijuma:
 
-Primer: docker build -t user-service . / docker build -t book-service . / docker build -t order-service . itd.
+```bash
+docker build -t discovery-service ./discovery-service
+docker build -t api-gateaway ./api-gateaway
+docker build -t user-service ./user-service
+docker build -t book-service ./book-service
+docker build -t order-service ./order-service
+docker build -t payment-service ./payment-service
+docker build -t notification-service ./notification-service
+```
 
-Nakon izgradnje svih image-a, kompletan mikroservisni sistem može se pokrenuti korišćenjem Docker Compose konfiguracije: docker compose up
+Nakon izgradnje svih image-a, kompletan mikroservisni sistem pokreće se jednom komandom iz root direktorijuma projekta:
+
+```bash
+docker compose up
+```
 
 Prilikom izvršavanja ove komande automatski se pokreću sve komponente sistema:
 
@@ -344,26 +373,277 @@ Prilikom izvršavanja ove komande automatski se pokreću sve komponente sistema:
 
 Docker Compose automatski kreira zajedničku mrežu između kontejnera, omogućava međusobnu komunikaciju servisa i obezbeđuje pravilno pokretanje zavisnih komponenti sistema.
 
-Nakon uspešnog pokretanja moguće je proveriti registraciju servisa putem Eureka Dashboard-a na adresi http://localhost:8761, dok se svi funkcionalni zahtevi prosleđuju preko API Gateway komponente dostupne na adresi http://localhost:8765.
+Nakon uspešnog pokretanja moguće je proveriti registraciju servisa putem Eureka Dashboard-a na adresi `http://localhost:8761`, dok se svi funkcionalni zahtevi prosleđuju preko API Gateway komponente dostupne na adresi `http://localhost:8765`.
 
-## 6.3. Service Discovery
+### 6.3 Service Discovery
 
-Za registraciju i pronalaženje mikroservisa koristi se Eureka Discovery Server. Nakon pokretanja sistema, Eureka Dashboard je dostupan na adresi: http://localhost:8761
+Za registraciju i pronalaženje mikroservisa koristi se Eureka Discovery Server. Nakon pokretanja sistema, Eureka Dashboard je dostupan na adresi: `http://localhost:8761`
 
 Putem ove konzole moguće je pratiti status svih registrovanih mikroservisa i proveriti njihovu dostupnost u sistemu.
 
-## 6.4. API Gateway
+### 6.4 API Gateway
 
-Svi zahtevi korisnika prolaze kroz API Gateway komponentu koja predstavlja jedinstvenu ulaznu tačku sistema. Gateway vrši: rutiranje zahteva ka odgovarajućim mikroservisima, autentifikaciju i autorizaciju korisnika i komunikaciju sa Eureka Discovery Server-om radi pronalaženja instanci servisa. API Gateway je dostupan na adresi: http://localhost:8765
+Svi zahtevi korisnika prolaze kroz API Gateway komponentu koja predstavlja jedinstvenu ulaznu tačku sistema. Gateway vrši rutiranje zahteva ka odgovarajućim mikroservisima, autentifikaciju i autorizaciju korisnika i komunikaciju sa Eureka Discovery Server-om radi pronalaženja instanci servisa. API Gateway je dostupan na adresi: `http://localhost:8765`
 
-## 6.5. Produkciono okruženje
+### 6.5 Produkciono okruženje
 
 Arhitektura sistema je projektovana prema principima modernih mikroservisnih aplikacija i spremna je za produkciono okruženje.
 
-Sistem koristi: Spring Cloud Eureka za Service Discovery, API Gateway za centralizovano rutiranje zahteva, Docker kontejnere za izolaciju i jednostavniji deployment, RabbitMQ za asinhronu komunikaciju između mikroservisa i PostgreSQL bazu podataka za trajno čuvanje podataka.
+Sistem koristi:
 
-Kao potencijalna buduća unapređenja predviđeni su:
+- Spring Cloud Eureka za Service Discovery
+- API Gateway za centralizovano rutiranje zahteva
+- Docker kontejnere za izolaciju i jednostavniji deployment
+- RabbitMQ za asinhronu komunikaciju između mikroservisa
+- PostgreSQL bazu podataka za trajno čuvanje podataka
 
-- Kubernetes deployment,
-- Prometheus i Grafana monitoring,
-- napredne CI/CD strategije za automatski deployment.
+Kao potencijalna buduća unapređenja predviđeni su: Kubernetes deployment, Prometheus i Grafana monitoring i napredne CI/CD strategije za automatski deployment.
+
+---
+
+## 7. Kredencijali i konfiguracija
+
+### 7.1 Default kredencijali
+
+Sledeći kredencijali važe za lokalno razvojno okruženje i Docker Compose deployment.
+
+| Servis            | Korisničko ime    | Lozinka          | Napomena                                       |
+| ----------------- | ----------------- | ---------------- | ---------------------------------------------- |
+| PostgreSQL        | `postgres`        | `postgres`       | Baza: `bookstore`                              |
+| RabbitMQ          | `guest`           | `guest`          | Management UI: http://localhost:15672          |
+| Mailtrap SMTP     | `5b26caa907c45b`  | `b6285849dd9326` | Host: `sandbox.smtp.mailtrap.io`, Port: `2525` |
+| Admin nalog (app) | `admin@gmail.com` | `admin123`       | Kreira se automatski pri prvom pokretanju      |
+
+> **Napomena:** Kredencijali navedeni u ovoj tabeli koriste se isključivo u razvojnom i testnom okruženju. Za produkciono okruženje obavezno promeniti sve lozinke i koristiti environment varijable ili secrets menadžer.
+
+### 7.2 Konfiguracija Notification Service-a
+
+Notification Service zahteva podešavanje SMTP i RabbitMQ konekcije u `application.properties` fajlu:
+
+```properties
+spring.application.name=notification-service
+server.port=8400
+
+# Eureka
+eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/bookstore
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database=POSTGRESQL
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# Mailtrap SMTP
+spring.mail.host=sandbox.smtp.mailtrap.io
+spring.mail.port=2525
+spring.mail.username=5b26caa907c45b
+spring.mail.password=b6285849dd9326
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# RabbitMQ
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+```
+
+---
+
+## 8. API primeri
+
+Svi zahtevi se šalju prema API Gateway-u na adresi `http://localhost:8765`. Zahtevi koji zahtevaju autentifikaciju šalju se sa Basic Auth headerom (`email:lozinka`).
+
+### 8.1 Registracija korisnika
+
+```bash
+POST http://localhost:8765/users/register
+Content-Type: application/json
+```
+
+```json
+{
+  "firstName": "Marko",
+  "lastName": "Marković",
+  "email": "marko@example.com",
+  "password": "lozinka123"
+}
+```
+
+**Odgovor (201 Created):**
+
+```json
+{
+  "id": 1,
+  "firstName": "Marko",
+  "lastName": "Marković",
+  "email": "marko@example.com",
+  "role": "USER"
+}
+```
+
+---
+
+### 8.2 Dodavanje knjige (admin)
+
+```bash
+POST http://localhost:8765/books
+Content-Type: application/json
+Authorization: Basic admin@gmail.com:admin123
+```
+
+```json
+{
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "price": 3500.0,
+  "quantity": 10
+}
+```
+
+**Odgovor (201 Created):**
+
+```json
+{
+  "id": 1,
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "price": 3500.0,
+  "quantity": 10
+}
+```
+
+---
+
+### 8.3 Pregled svih knjiga
+
+```bash
+GET http://localhost:8765/books
+```
+
+**Odgovor (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "price": 3500.0,
+    "quantity": 10
+  },
+  {
+    "id": 2,
+    "title": "The Pragmatic Programmer",
+    "author": "Andrew Hunt",
+    "price": 2900.0,
+    "quantity": 5
+  }
+]
+```
+
+---
+
+### 8.4 Kreiranje porudžbine
+
+Ovo je centralni API poziv koji pokreće kompletan flow sistema: validacija korisnika → provera knjige → umanjenje lagera → kreiranje porudžbine → obrada plaćanja → slanje email notifikacije.
+
+```bash
+POST http://localhost:8765/orders
+Content-Type: application/json
+Authorization: Basic marko@example.com:lozinka123
+```
+
+```json
+{
+  "bookId": 1,
+  "quantity": 2
+}
+```
+
+**Odgovor — uspešna porudžbina (201 Created):**
+
+```json
+{
+  "id": 1,
+  "bookId": 1,
+  "userId": 1,
+  "quantity": 2,
+  "totalPrice": 7000.0,
+  "status": "CONFIRMED"
+}
+```
+
+**Odgovor — neuspešno plaćanje (201 Created):**
+
+```json
+{
+  "id": 2,
+  "bookId": 1,
+  "userId": 1,
+  "quantity": 1,
+  "totalPrice": 3500.0,
+  "status": "FAILED"
+}
+```
+
+**Odgovor — nedovoljno knjiga na stanju (400 Bad Request):**
+
+```json
+{
+  "message": "Insufficient stock for the requested quantity."
+}
+```
+
+> Nakon svakog kreiranja porudžbine (bez obzira na status), korisnik dobija email obaveštenje putem Mailtrap servisa.
+
+---
+
+### 8.5 Pregled porudžbina korisnika
+
+```bash
+GET http://localhost:8765/orders
+Authorization: Basic marko@example.com:lozinka123
+```
+
+**Odgovor (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "bookId": 1,
+    "userId": 1,
+    "quantity": 2,
+    "totalPrice": 7000.0,
+    "status": "CONFIRMED"
+  }
+]
+```
+
+---
+
+### 8.6 Pregled plaćanja korisnika
+
+```bash
+GET http://localhost:8765/payments
+Authorization: Basic marko@example.com:lozinka123
+```
+
+**Odgovor (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "orderId": 1,
+    "userId": 1,
+    "amount": 7000.0,
+    "status": "SUCCESS"
+  }
+]
+```

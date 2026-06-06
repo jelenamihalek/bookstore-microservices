@@ -25,7 +25,7 @@ class BookServiceTest {
     @InjectMocks
     private BookService bookService;
 
-    // ✅ CREATE SUCCESS
+    //  CREATE 
     @Test
     void shouldCreateBook() {
         Book book = new Book(0, "Title", "Author", 10, 5);
@@ -38,7 +38,7 @@ class BookServiceTest {
         assertEquals("Title", result.getTitle());
     }
 
-    // ❌ TITLE MISSING
+    //  TITLE MISSING
     @Test
     void shouldThrow_whenTitleMissing() {
         Book book = new Book(0, null, "Author", 10, 5);
@@ -47,7 +47,7 @@ class BookServiceTest {
                 () -> bookService.createBook(book));
     }
 
-    // ❌ DUPLICATE BOOK
+    //  DUPLICATE BOOK
     @Test
     void shouldThrow_whenBookExists() {
         Book existing = new Book(1, "Title", "Author", 10, 5);
@@ -59,7 +59,7 @@ class BookServiceTest {
                 () -> bookService.createBook(newBook));
     }
 
-    // ✅ GET BY ID
+    //  GET BY ID
     @Test
     void shouldGetBookById() {
         Book book = new Book(1, "T", "A", 10, 5);
@@ -71,7 +71,7 @@ class BookServiceTest {
         assertEquals(1, result.getId());
     }
 
-    // ❌ BOOK NOT FOUND
+    //  BOOK NOT FOUND
     @Test
     void shouldThrow_whenBookNotFound() {
         when(bookRepository.findById(1)).thenReturn(Optional.empty());
@@ -80,7 +80,7 @@ class BookServiceTest {
                 () -> bookService.getBookById(1));
     }
 
-    // ✅ UPDATE
+    //  UPDATE
     @Test
     void shouldUpdateBook() {
         Book existing = new Book(1, "Old", "A", 10, 5);
@@ -94,7 +94,7 @@ class BookServiceTest {
         assertEquals("New", result.getTitle());
     }
 
-    // ❌ INVALID PRICE
+    //  INVALID PRICE
     @Test
     void shouldThrow_whenPriceInvalid() {
         Book existing = new Book(1, "Old", "A", 10, 5);
@@ -106,7 +106,7 @@ class BookServiceTest {
                 () -> bookService.updateBook(1, updated));
     }
 
-    // ✅ DELETE
+    //  DELETE
     @Test
     void shouldDeleteBook() {
         Book book = new Book(1, "T", "A", 10, 5);
@@ -118,7 +118,7 @@ class BookServiceTest {
         verify(bookRepository).delete(book);
     }
 
-    // ✅ DECREASE STOCK
+    //  DECREASE STOCK
     @Test
     void shouldDecreaseStock() {
         Book book = new Book(1, "T", "A", 10, 10);
@@ -131,14 +131,14 @@ class BookServiceTest {
         verify(bookRepository).save(book);
     }
 
-    // ❌ INVALID QUANTITY
+    //  INVALID QUANTITY
     @Test
     void shouldThrow_whenQuantityInvalid() {
         assertThrows(RuntimeException.class,
                 () -> bookService.decreaseStock(1, 0));
     }
 
-    // ❌ NOT ENOUGH STOCK
+    //  NOT ENOUGH STOCK
     @Test
     void shouldThrow_whenNotEnoughStock() {
         Book book = new Book(1, "T", "A", 10, 2);

@@ -18,7 +18,7 @@ public class User {
 	private String password;
 	
 	
-	@Column(nullable = false, columnDefinition="VARCHAR(10) CHECK(role IN ('ADMIN','USER','OWNER'))")
+	@Column(nullable = false, columnDefinition="VARCHAR(10) CHECK(role IN ('ADMIN','USER'))")
 	private String role;
 	
 	public User() {

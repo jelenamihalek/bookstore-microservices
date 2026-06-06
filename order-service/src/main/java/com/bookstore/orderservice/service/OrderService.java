@@ -288,6 +288,7 @@ public class OrderService {
 
 	    Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
+	    //potrebno je dodati validacije
 
 	    order.setBookId(updatedOrder.getBookId());
 	    order.setUserId(updatedOrder.getUserId());

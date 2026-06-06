@@ -18,9 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.springframework.http.MediaType;
 
-@SpringBootTest
+@SpringBootTest // podize celu aplikaciju
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("test") //koristimo testnu bazu
 class BookIntegrationTest {
 
     @Autowired
@@ -34,7 +34,7 @@ class BookIntegrationTest {
         bookRepository.deleteAll(); // čisti bazu pre svakog testa
     }
 
-    // ✅ CREATE + GET ALL
+    // CREATE + GET ALL
     @Test
     void shouldCreateAndGetBooks() throws Exception {
 
@@ -55,7 +55,7 @@ class BookIntegrationTest {
                 .andExpect(jsonPath("$[0].title").value("Clean Code"));
     }
 
-    // ✅ GET BY ID
+    //  GET BY ID
     @Test
     void shouldGetBookById() throws Exception {
 
@@ -68,7 +68,7 @@ class BookIntegrationTest {
                 .andExpect(jsonPath("$.title").value("Java"));
     }
 
-    // ❌ GET BY ID - NOT FOUND
+    //  GET BY ID - NOT FOUND
     @Test
     void shouldReturn404_whenBookNotFound() throws Exception {
 
@@ -76,7 +76,7 @@ class BookIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    // ✅ UPDATE
+    //  UPDATE
     @Test
     void shouldUpdateBook() throws Exception {
 
@@ -98,7 +98,7 @@ class BookIntegrationTest {
                 .andExpect(jsonPath("$.title").value("New"));
     }
 
-    // ✅ DELETE
+    //  DELETE
     @Test
     void shouldDeleteBook() throws Exception {
 
@@ -113,7 +113,7 @@ class BookIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    // ✅ DECREASE STOCK
+    //  DECREASE STOCK
     @Test
     void shouldDecreaseStock() throws Exception {
 
@@ -128,7 +128,7 @@ class BookIntegrationTest {
                 .andExpect(jsonPath("$.stock").value(5));
     }
 
-    // ❌ NOT ENOUGH STOCK
+    //  NOT ENOUGH STOCK
     @Test
     void shouldFail_whenNotEnoughStock() throws Exception {
 
@@ -140,7 +140,7 @@ class BookIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    // ❌ INVALID QUANTITY
+    //  INVALID QUANTITY
     @Test
     void shouldFail_whenQuantityInvalid() throws Exception {
 
