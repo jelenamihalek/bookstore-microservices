@@ -103,6 +103,8 @@ Pored navedenih servisa, projekat sadrži i zajedničke biblioteke koje omoguća
 
 U nastavku dokumentacije prikazan je dijagram arhitekture sistema.
 
+![Dijagram mikroservisnog sistema](BookstoreMicroservices.drawio.png)
+
 ### 3.2 Eureka Discovery Server
 
 Eureka Discovery Server predstavlja centralnu komponentu za registraciju i pronalaženje servisa unutar sistema.
