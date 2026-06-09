@@ -70,7 +70,7 @@ class OrderServiceTest {
 
         when(paymentClient.processPayment(any())).thenReturn(paymentResponse);
 
-        Order result = orderService.createOrder(request, "token");
+        OrderResponseDTO result =result = orderService.createOrder(request, "token");
 
         assertEquals("CONFIRMED", result.getStatus());
        // verify(notificationClient).sendNotification(any());
@@ -178,7 +178,7 @@ class OrderServiceTest {
 
         when(paymentClient.processPayment(any())).thenReturn(response);
 
-        Order result = orderService.createOrder(request, "token");
+        OrderResponseDTO result = result = orderService.createOrder(request, "token");
 
         assertEquals("FAILED", result.getStatus());
         verify(bookClient).increaseStock(anyInt(), anyInt());
@@ -240,7 +240,7 @@ class OrderServiceTest {
         when(paymentClient.processPayment(any()))
                 .thenThrow(new RuntimeException());
 
-        Order result = orderService.createOrder(request, "token");
+        OrderResponseDTO result = result = orderService.createOrder(request, "token");
 
         assertEquals("FAILED", result.getStatus());
         verify(bookClient).increaseStock(anyInt(), anyInt());

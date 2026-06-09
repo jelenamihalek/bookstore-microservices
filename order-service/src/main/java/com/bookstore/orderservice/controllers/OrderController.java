@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bookstore.orderservice.models.Order;
 import com.bookstore.orderservice.service.OrderService;
 import com.bookstore.service_library.dtos.OrderRequestDTO;
+import com.bookstore.service_library.dtos.OrderResponseDTO;
 
 
 @RestController
@@ -30,7 +31,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order createOrder(@RequestBody OrderRequestDTO order,@ RequestHeader("Authorization") String authorization){
+    public OrderResponseDTO createOrder(@RequestBody OrderRequestDTO order,@ RequestHeader("Authorization") String authorization){
         return orderService.createOrder(order, authorization);
     }
 

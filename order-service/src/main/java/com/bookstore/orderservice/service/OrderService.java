@@ -1,5 +1,6 @@
 package com.bookstore.orderservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,10 @@ import com.bookstore.orderservice.repository.OrderItemRepository;
 import com.bookstore.orderservice.repository.OrderRepository;
 import com.bookstore.service_library.decoder.Decoder;
 import com.bookstore.service_library.dtos.BookDTO;
-import com.bookstore.service_library.dtos.NotificationDTO;
 import com.bookstore.service_library.dtos.OrderItemRequestDTO;
+import com.bookstore.service_library.dtos.OrderItemResponseDTO;
 import com.bookstore.service_library.dtos.OrderRequestDTO;
+import com.bookstore.service_library.dtos.OrderResponseDTO;
 import com.bookstore.service_library.dtos.PaymentDTO;
 import com.bookstore.service_library.dtos.UserDTO;
 import com.bookstore.service_library.events.OrderNotificationEvent;
@@ -66,8 +68,8 @@ public class OrderService {
 		this.paymentClient=paymentClient;
 		this.decoder=decoder;
 		this.notificationClient=notificationClient;
-		  this.eventPublisher = eventPublisher;
-		  this.orderItemRepository=orderItemRepository;
+		this.eventPublisher = eventPublisher;
+		this.orderItemRepository=orderItemRepository;
 	
 	}
 	
@@ -77,24 +79,10 @@ public class OrderService {
 	 public Order getOrderById(int id) {
 	        return orderRepository.findById(id)
 	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
-	    }
-	 public Order createOrder(
-		        OrderRequestDTO request,
-		        String authorization) {
-		 
-		
-		  System.out.println("USAO U CREATE ORDER");
+	 }
+	 
+	 public OrderResponseDTO createOrder( OrderRequestDTO request,String authorization) {
 
-		    System.out.println("REQUEST = " + request);
-
-		    if(request.getItems() != null) {
-		        for(OrderItemRequestDTO item : request.getItems()) {
-		            System.out.println(
-		                "BOOK=" + item.getBookId()
-		                + " QUANTITY=" + item.getQuantity()
-		            );
-		        }
-		    }
 		    String email = decoder.decodeHeader(authorization);
 
 		    UserDTO user = userClient.findByEmail(email);
@@ -113,18 +101,16 @@ public class OrderService {
 		    Order savedOrder = orderRepository.save(order);
 
 		    double totalAmount = 0;
+		    List<OrderItemResponseDTO> responseItems = new ArrayList<>();
+		    
 		    for (OrderItemRequestDTO item : request.getItems()) {
 
-		        if (item.getQuantity() <= 0) {
-		            throw new InvalidOrderException(
-		                    "Quantity must be greater than 0"
-		            );
+		        if (item.getQuantity() <= 0) { 
+		        	throw new InvalidOrderException("Quantity must be greater than 0");
 		        }
 
 		        if (item.getBookId() <= 0) {
-		            throw new InvalidOrderException(
-		                    "Invalid book id"
-		            );
+		            throw new InvalidOrderException("Invalid book id");
 		        }
 		    }
 
@@ -134,104 +120,87 @@ public class OrderService {
 		        for (OrderItemRequestDTO item : request.getItems()) {
 
 		           
-		            BookDTO book =
-		                    bookClient.getBookById(
-		                            item.getBookId()
-		                    );
+		            BookDTO book =bookClient.getBookById(item.getBookId());
+		       
 
 		            if (book == null) {
-		                throw new BookNotFoundException(
-		                        "Book not found",
-		                        item.getBookId()
-		                );
+		                throw new BookNotFoundException("Book not found",item.getBookId() );
 		            }
 
 		            if (book.getStock() < item.getQuantity()) {
-		                throw new InsufficientStockException(
-		                        "Not enough stock",
-		                        item.getQuantity(),
-		                        book.getStock()
-		                );
+		                throw new InsufficientStockException( "Not enough stock",item.getQuantity(),book.getStock());
 		            }
+		            
+		            OrderItemResponseDTO responseItem =new OrderItemResponseDTO();
 
-		            bookClient.decreaseStock(
-		                    item.getBookId(),
-		                    item.getQuantity()
-		            );
+		            responseItem.setBookId(book.getId());
+		            responseItem.setTitle(book.getTitle());
+		            responseItem.setQuantity(item.getQuantity());
 
-		            totalAmount +=
-		                    book.getPrice()
-		                    * item.getQuantity();
+		            responseItems.add(responseItem);
+		            bookClient.decreaseStock( item.getBookId(),item.getQuantity() );
 
-		            OrderItem orderItem =
-		                    new OrderItem();
+		            totalAmount +=book.getPrice() * item.getQuantity();
 
-		            orderItem.setOrderId(
-		                    savedOrder.getId()
-		            );
+		            OrderItem orderItem = new OrderItem();
 
-		            orderItem.setBookId(
-		                    item.getBookId()
-		            );
+		            orderItem.setOrderId(savedOrder.getId());
 
-		            orderItem.setQuantity(
-		                    item.getQuantity()
-		            );
+		            orderItem.setBookId(item.getBookId());
 
-		            orderItemRepository.save(
-		                    orderItem
-		            );
+		            orderItem.setQuantity(item.getQuantity());
+
+		            orderItemRepository.save(orderItem);
 		        }
 
-		        PaymentDTO payment =
-		                new PaymentDTO();
+		        PaymentDTO payment =new PaymentDTO();
 
-		        payment.setOrderId(
-		                savedOrder.getId()
-		        );
+		        payment.setOrderId(savedOrder.getId());
 
-		        payment.setUserId(
-		                user.getId()
-		        );
+		        payment.setUserId(user.getId());
 
-		        payment.setAmount(
-		                totalAmount
-		        );
+		        payment.setAmount(totalAmount);
 
-		        PaymentDTO response =
-		                paymentClient.processPayment(
-		                        payment
-		                );
+		        PaymentDTO response =paymentClient.processPayment(payment);
 
-		        if (response != null &&
-		                "SUCCESS".equals(
-		                        response.getStatus())) {
+		        if (response != null &&"SUCCESS".equals(response.getStatus())) {
 
-		            savedOrder.setStatus(
-		                    "CONFIRMED"
-		            );
+		        	savedOrder.setStatus("CONFIRMED");
 
-		            publishNotification(
-		                    user.getEmail(),
-		                    "Order Confirmed",
-		                    "Your order is CONFIRMED"
-		            );
+		        	StringBuilder message = new StringBuilder();
+
+		        	message.append("Your order has been confirmed.\n\n");
+
+		        	message.append("Order ID: ").append(savedOrder.getId())
+		        	       .append("\n\n");
+
+		        	message.append("Books:\n");
+
+		        	for (OrderItemResponseDTO item : responseItems) {
+
+		        	    message.append("- ")
+		        	           .append(item.getTitle())
+		        	           .append(" x")
+		        	           .append(item.getQuantity())
+		        	           .append("\n");
+		        	}
+
+		        	message.append("\nTotal amount: ")
+		        	       .append(totalAmount)
+		        	       .append("\n");
+
+		        	message.append("\nStatus: CONFIRMED");
+
+		        	publishNotification( user.getEmail(),"Order Confirmed", message.toString()
+		        	);
 
 		        } else {
 
-		            savedOrder.setStatus(
-		                    "FAILED"
-		            );
+		            savedOrder.setStatus("FAILED");
 
-		            publishNotification(
-		                    user.getEmail(),
-		                    "Order Failed",
-		                    "Your order FAILED"
-		            );
+		            publishNotification(user.getEmail(),"Order Failed","Your order FAILED");
 
-		            rollbackStock(
-		                    savedOrder.getId()
-		            );
+		            rollbackStock(savedOrder.getId());
 		        }
 
 		    } catch (InvalidOrderException e) {
@@ -239,252 +208,45 @@ public class OrderService {
 		    }
 		    catch (Exception e) {
 
-		        savedOrder.setStatus(
-		                "FAILED"
-		        );
+		        savedOrder.setStatus("FAILED");
 
-		        publishNotification(
-		                user.getEmail(),
-		                "Order Failed",
-		                "Payment service error - order FAILED"
-		        );
+		        publishNotification(user.getEmail(),"Order Failed","Payment service error - order FAILED");
 
-		        rollbackStock(
-		                savedOrder.getId()
-		        );
+		        rollbackStock(savedOrder.getId());
 		    }
 
-		    return orderRepository.save(
-		            savedOrder
-		    );
+		  
+		    orderRepository.save(savedOrder);
+
+		    OrderResponseDTO response =new OrderResponseDTO();
+
+		    response.setOrderId(savedOrder.getId() );
+
+		    response.setStatus(savedOrder.getStatus() );
+
+		    response.setTotalAmount(totalAmount );
+
+		    response.setItems(responseItems );
+
+		    return response;
 		}
 	 private void rollbackStock(int orderId) {
 
-		    List<OrderItem> items =
-		            orderItemRepository
-		                    .findByOrderId(orderId);
+		    List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
 
 		    for (OrderItem item : items) {
 
-		        bookClient.increaseStock(
-		                item.getBookId(),
-		                item.getQuantity()
-		        );
+		        bookClient.increaseStock( item.getBookId(),item.getQuantity());
 		    }
 		}
-	/* public Order createOrder(Order order, String authorization) {
 
-		    String email = decoder.decodeHeader(authorization);
-
-		    // 1. User
-		    UserDTO user = userClient.findByEmail(email);
-
-		    if (user == null) {
-		        throw new UserNotFoundByEmailException(
-		                "User not found",
-		                email
-		        );
-		    }
-
-		    if (order.getQuantity() <= 0) {
-		        throw new InvalidOrderException(
-		                "Quantity must be greater than 0"
-		        );
-		    }
-
-		    if (order.getBookId() <= 0) {
-		        throw new InvalidOrderException(
-		                "Invalid book ID"
-		        );
-		    }
-
-		    order.setUserId(user.getId());
-
-		    // 2. Book
-		    BookDTO book = bookClient.getBookById(
-		            order.getBookId()
-		    );
-
-		    if (book == null) {
-		        throw new BookNotFoundException(
-		                "Book not found",
-		                order.getBookId()
-		        );
-		    }
-
-		    if (book.getStock() < order.getQuantity()) {
-		        throw new InsufficientStockException(
-		                "Not enough stock",
-		                order.getQuantity(),
-		                book.getStock()
-		        );
-		    }
-
-		    // 3. Decrease stock
-		    bookClient.decreaseStock(
-		            order.getBookId(),
-		            order.getQuantity()
-		    );
-
-		    // 4. Initial status
-		    order.setStatus("PENDING");
-
-		    // 5. Save order
-		    Order savedOrder = orderRepository.save(order);
-
-		    try {
-
-		        // 6. Payment
-		        PaymentDTO payment = new PaymentDTO();
-		        payment.setOrderId(savedOrder.getId());
-		        payment.setAmount(
-		                book.getPrice() * order.getQuantity()
-		        );
-		        payment.setUserId(user.getId());
-
-		        PaymentDTO response =
-		                paymentClient.processPayment(payment);
-
-		        if (response != null &&
-		                "SUCCESS".equals(response.getStatus())) {
-
-		            savedOrder.setStatus("CONFIRMED");
-
-		            publishNotification(
-		                    user.getEmail(),
-		                    "Order Confirmed",
-		                    "Your order is CONFIRMED"
-		            );
-
-		        } else {
-
-		            savedOrder.setStatus("FAILED");
-
-		            publishNotification(
-		                    user.getEmail(),
-		                    "Order Failed",
-		                    "Your order FAILED"
-		            );
-
-		            bookClient.increaseStock(
-		                    order.getBookId(),
-		                    order.getQuantity()
-		            );
-		        }
-
-		    } catch (Exception e) {
-
-		        savedOrder.setStatus("FAILED");
-
-		        publishNotification(
-		                user.getEmail(),
-		                "Order Failed",
-		                "Payment service error - order FAILED"
-		        );
-
-		        bookClient.increaseStock(
-		                order.getBookId(),
-		                order.getQuantity()
-		        );
-		    }
-
-		    return orderRepository.save(savedOrder);
-		}*/
 	 
-	 private void publishNotification(
-		        String email,
-		        String subject,
-		        String message) {
+	 private void publishNotification(String email,String subject,String message) {
 
-		    eventPublisher.publish(
-		            new OrderNotificationEvent(
-		                    email,
-		                    subject,
-		                    message
-		            )
+		    eventPublisher.publish(new OrderNotificationEvent(email,subject,message)
 		    );
 		}
-	/* public Order createOrder(Order order,String authorization) {
-
-		 String email=decoder.decodeHeader(authorization);
-		    // 1. uzmi user iz users-service
-		    UserDTO user = userClient.findByEmail(email);
-
-		    if (user == null) {
-		        throw new UserNotFoundByEmailException("User not found",email);
-		    }
-		    
-		    if (order.getQuantity() <= 0) {
-		        throw new InvalidOrderException("Quantity must be greater than 0");
-		    }
-
-		    if (order.getBookId() <= 0) {
-		        throw new InvalidOrderException("Invalid book ID");
-		    }
-
-		    order.setUserId(user.getId());
-
-		    // 2. book
-		    BookDTO book = bookClient.getBookById(order.getBookId());
-		    if (book == null) {
-		        throw new BookNotFoundException("Book not found",order.getBookId());
-		    }
-
-		    if (book.getStock() < order.getQuantity()) {
-		        throw new InsufficientStockException("Not enough stock",order.getQuantity(),book.getStock());
-		    }
-
-		    // 3. smanji stock
-		    bookClient.decreaseStock(order.getBookId(), order.getQuantity());
-
-		    // 4. status
-		    order.setStatus("PENDING");
-
-		    // 5. save
-		    Order savedOrder = orderRepository.save(order);
-
-		    try {
-		        // 6. payment
-		        PaymentDTO payment = new PaymentDTO();
-		        payment.setOrderId(savedOrder.getId());
-		        payment.setAmount(book.getPrice() * order.getQuantity());
-		        payment.setUserId(user.getId());
-
-		        PaymentDTO response = paymentClient.processPayment(payment);
-
-		        if (response != null && "SUCCESS".equals(response.getStatus())) {
-		            savedOrder.setStatus("CONFIRMED");
-		            NotificationDTO dto = new NotificationDTO();
-		            dto.setEmail(user.getEmail());
-		            dto.setSubject("Order Confirmed");
-		            dto.setMessage("Your order is CONFIRMED");
-
-		            notificationClient.sendNotification(dto);
-		        } else {
-		            savedOrder.setStatus("FAILED");
-		            NotificationDTO dto = new NotificationDTO();
-		            dto.setEmail(user.getEmail());
-		            dto.setSubject("Order Failed");
-		            dto.setMessage("Your order FAILED");
-
-		            notificationClient.sendNotification(dto);
-		            bookClient.increaseStock(order.getBookId(), order.getQuantity());
-		        }
-
-		    } catch (Exception e) {
-		        savedOrder.setStatus("FAILED");
-		        NotificationDTO dto = new NotificationDTO();
-		        dto.setEmail(user.getEmail());
-		        dto.setSubject("Order Failed");
-		        dto.setMessage("Payment service error - order FAILED");
-
-		        notificationClient.sendNotification(dto);
-		        bookClient.increaseStock(order.getBookId(), order.getQuantity());
-		    }
-
-		    return orderRepository.save(savedOrder);
-		}*/
-	 
+	
 	public Order updateOrder(int id, Order updatedOrder) {
 
 	    Order order = orderRepository.findById(id)

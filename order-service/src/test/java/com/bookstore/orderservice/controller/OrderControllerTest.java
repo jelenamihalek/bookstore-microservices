@@ -4,6 +4,8 @@ import com.bookstore.orderservice.controllers.OrderController;
 import com.bookstore.orderservice.models.Order;
 import com.bookstore.orderservice.service.EventPublisher;
 import com.bookstore.orderservice.service.OrderService;
+import com.bookstore.service_library.dtos.OrderItemResponseDTO;
+import com.bookstore.service_library.dtos.OrderResponseDTO;
 
 import org.junit.jupiter.api.Test;
 
@@ -40,27 +42,42 @@ class OrderControllerTest {
     @Test
     void shouldCreateOrder() throws Exception {
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(2);
+    	 OrderItemResponseDTO item =new OrderItemResponseDTO();
 
-        when(orderService.createOrder(any(), any())).thenReturn(order);
+    	    item.setBookId(1);
+    	    item.setTitle("Test Book");
+    	    item.setQuantity(2);
 
-        mockMvc.perform(post("/orders")
-                .header("Authorization", "Bearer test")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                		{
-                		  "items": [
-                		    {
-                		      "bookId": 1,
-                		      "quantity": 2
-                		    }
-                		  ]
-                		}
-                		"""))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bookId").value(1));
+    	    OrderResponseDTO response = new OrderResponseDTO();
+
+    	    response.setOrderId(1);
+    	    response.setStatus("CONFIRMED");
+    	    response.setTotalAmount(100);
+
+    	    response.setItems(List.of(item)  );
+
+    	    when(orderService.createOrder(any(), any())).thenReturn(response);
+
+    	    mockMvc.perform(post("/orders")
+    	            .header("Authorization", "Bearer test")
+    	            .contentType(MediaType.APPLICATION_JSON)
+    	            .content("""
+    	                    {
+    	                      "items": [
+    	                        {
+    	                          "bookId": 1,
+    	                          "quantity": 2
+    	                        }
+    	                      ]
+    	                    }
+    	                    """))
+    	            .andExpect(status().isOk())
+    	            .andExpect(jsonPath("$.orderId").value(1))
+    	            .andExpect(jsonPath("$.status").value("CONFIRMED"))
+    	            .andExpect(jsonPath("$.items[0].bookId").value(1))
+    	            .andExpect(jsonPath("$.items[0].title").value("Test Book"))
+    	            .andExpect(jsonPath("$.items[0].quantity").value(2))
+    	            .andExpect(jsonPath("$.totalAmount").value(100.0));
     }
 
     //  GET MY ORDERS
