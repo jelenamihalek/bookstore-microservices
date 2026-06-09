@@ -17,13 +17,13 @@ services:
       - "15672:15672"
 
   discovery-service:
-    image: discovery-service:latest
+    image: jelenamihalek/discovery-service:latest
     container_name: discovery-service
     ports:
       - "8761:8761"
 
   api-gateway:
-    image: api-gateaway:latest
+    image: jelenamihalek/api-gateaway:latest
     container_name: api-gateaway
     ports:
       - "8765:8765"
@@ -33,7 +33,7 @@ services:
       - discovery-service
 
   user-service:
-    image: user-service:latest
+    image: jelenamihalek/user-service:latest
     container_name: user-service
     ports:
       - "8100:8100"
@@ -47,7 +47,7 @@ services:
       - discovery-service
 
   order-service:
-    image: order-service:latest
+    image: jelenamihalek/order-service:latest
     container_name: order-service
     ports:
       - "8200:8200"
@@ -75,7 +75,7 @@ services:
       - discovery-service
 
   payment-service:
-    image: payment-service:latest
+    image: jelenamihalek/payment-service:latest
     container_name: payment-service
     ports:
       - "8081:8081"
@@ -84,12 +84,15 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
     depends_on:
       - postgres
       - discovery-service
+      - rabbitmq
 
   notification-service:
-    image: notification-service:latest
+    image: jelenamihalek/notification-service:latest
     container_name: notification-service
     ports:
       - "8400:8400"
