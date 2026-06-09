@@ -81,7 +81,18 @@ public class OrderService {
 	 public Order createOrder(
 		        OrderRequestDTO request,
 		        String authorization) {
+		  System.out.println("USAO U CREATE ORDER");
 
+		    System.out.println("REQUEST = " + request);
+
+		    if(request.getItems() != null) {
+		        for(OrderItemRequestDTO item : request.getItems()) {
+		            System.out.println(
+		                "BOOK=" + item.getBookId()
+		                + " QUANTITY=" + item.getQuantity()
+		            );
+		        }
+		    }
 		    String email = decoder.decodeHeader(authorization);
 
 		    UserDTO user = userClient.findByEmail(email);

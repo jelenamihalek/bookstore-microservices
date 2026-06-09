@@ -36,7 +36,7 @@ class OrderControllerTest {
     @MockBean
     private EventPublisher eventPublisher;
 
-    // ✅ CREATE ORDER
+    //  CREATE ORDER
     @Test
     void shouldCreateOrder() throws Exception {
 
@@ -50,16 +50,20 @@ class OrderControllerTest {
                 .header("Authorization", "Bearer test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                        "bookId": 1,
-                        "quantity": 2
-                    }
-                """))
+                		{
+                		  "items": [
+                		    {
+                		      "bookId": 1,
+                		      "quantity": 2
+                		    }
+                		  ]
+                		}
+                		"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookId").value(1));
     }
 
-    // ✅ GET MY ORDERS
+    //  GET MY ORDERS
     @Test
     void shouldGetMyOrders() throws Exception {
 
@@ -71,7 +75,7 @@ class OrderControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // ✅ GET ALL (ADMIN)
+    //  GET ALL (ADMIN)
     @Test
     void shouldGetAllOrders() throws Exception {
 
@@ -92,7 +96,7 @@ class OrderControllerTest {
                 .andExpect(content().string("Order deleted"));
     }
 
-    // ✅ GET BY ID (USER)
+    //  GET BY ID (USER)
     @Test
     void shouldGetOrderByIdForUser() throws Exception {
 
