@@ -61,7 +61,7 @@ services:
       - discovery-service
 
   book-service:
-    image: book-service:latest
+    image: jelenamihalek/book-service:latest
     container_name: book-service
     ports:
       - "8300:8300"
