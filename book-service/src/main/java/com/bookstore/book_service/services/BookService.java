@@ -83,15 +83,7 @@ if (book.getTitle() == null || book.getTitle().isEmpty()) {
 	        throw new MissingFieldException("Stock cannot be negative", "stock");
 	    }
 	    
-	    List<Book> books = bookRepository.findAll();
-	    for (Book bookModel : books) {
-	        if (bookModel.getTitle().equals(book.getTitle())) {
-	            throw new BookAlreadyExistsException(
-	                "Book already exists with title: " + book.getTitle(),
-	                book.getTitle()
-	            );
-	        }
-	    }
+
 
 	    book.setTitle(updatedBook.getTitle());
 	    book.setAuthor(updatedBook.getAuthor());
