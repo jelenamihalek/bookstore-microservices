@@ -100,18 +100,27 @@ public class OrderService {
 		    Order savedOrder = orderRepository.save(order);
 
 		    double totalAmount = 0;
-		    
+		    for (OrderItemRequestDTO item : request.getItems()) {
+
+		        if (item.getQuantity() <= 0) {
+		            throw new InvalidOrderException(
+		                    "Quantity must be greater than 0"
+		            );
+		        }
+
+		        if (item.getBookId() <= 0) {
+		            throw new InvalidOrderException(
+		                    "Invalid book id"
+		            );
+		        }
+		    }
+
 
 		    try {
 
 		        for (OrderItemRequestDTO item : request.getItems()) {
 
-		            if (item.getQuantity() <= 0) {
-		                throw new InvalidOrderException(
-		                        "Quantity must be greater than 0"
-		                );
-		            }
-
+		           
 		            BookDTO book =
 		                    bookClient.getBookById(
 		                            item.getBookId()
