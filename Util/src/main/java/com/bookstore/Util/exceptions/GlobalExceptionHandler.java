@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 	    return ResponseEntity.status(HttpStatus.NOT_FOUND)
 	            .body(new ExceptionModel(
 	                    ex.getMessage(),
-	                    "User not found",
+	                    "Book not found",
 	                    HttpStatus.NOT_FOUND
 	            ));
 	} 

@@ -17,10 +17,14 @@ import com.bookstore.orderservice.clients.NotificationClient;
 import com.bookstore.orderservice.clients.PaymentClient;
 import com.bookstore.orderservice.clients.UserClient;
 import com.bookstore.orderservice.models.Order;
+import com.bookstore.orderservice.models.OrderItem;
+import com.bookstore.orderservice.repository.OrderItemRepository;
 import com.bookstore.orderservice.repository.OrderRepository;
 import com.bookstore.service_library.decoder.Decoder;
 import com.bookstore.service_library.dtos.BookDTO;
 import com.bookstore.service_library.dtos.NotificationDTO;
+import com.bookstore.service_library.dtos.OrderItemRequestDTO;
+import com.bookstore.service_library.dtos.OrderRequestDTO;
 import com.bookstore.service_library.dtos.PaymentDTO;
 import com.bookstore.service_library.dtos.UserDTO;
 import com.bookstore.service_library.events.OrderNotificationEvent;
@@ -44,6 +48,9 @@ public class OrderService {
 	
 	@Autowired
 	private EventPublisher eventPublisher;
+	
+	@Autowired
+	private OrderItemRepository orderItemRepository;
 	
 	@Autowired
 	private Decoder decoder;
@@ -70,7 +77,175 @@ public class OrderService {
 	        return orderRepository.findById(id)
 	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
 	    }
-	 public Order createOrder(Order order, String authorization) {
+	 public Order createOrder(
+		        OrderRequestDTO request,
+		        String authorization) {
+
+		    String email = decoder.decodeHeader(authorization);
+
+		    UserDTO user = userClient.findByEmail(email);
+
+		    if (user == null) {
+		        throw new UserNotFoundByEmailException(
+		                "User not found",
+		                email
+		        );
+		    }
+
+		    Order order = new Order();
+		    order.setUserId(user.getId());
+		    order.setStatus("PENDING");
+
+		    Order savedOrder = orderRepository.save(order);
+
+		    double totalAmount = 0;
+
+		    try {
+
+		        for (OrderItemRequestDTO item : request.getItems()) {
+
+		            if (item.getQuantity() <= 0) {
+		                throw new InvalidOrderException(
+		                        "Quantity must be greater than 0"
+		                );
+		            }
+
+		            BookDTO book =
+		                    bookClient.getBookById(
+		                            item.getBookId()
+		                    );
+
+		            if (book == null) {
+		                throw new BookNotFoundException(
+		                        "Book not found",
+		                        item.getBookId()
+		                );
+		            }
+
+		            if (book.getStock() < item.getQuantity()) {
+		                throw new InsufficientStockException(
+		                        "Not enough stock",
+		                        item.getQuantity(),
+		                        book.getStock()
+		                );
+		            }
+
+		            bookClient.decreaseStock(
+		                    item.getBookId(),
+		                    item.getQuantity()
+		            );
+
+		            totalAmount +=
+		                    book.getPrice()
+		                    * item.getQuantity();
+
+		            OrderItem orderItem =
+		                    new OrderItem();
+
+		            orderItem.setOrderId(
+		                    savedOrder.getId()
+		            );
+
+		            orderItem.setBookId(
+		                    item.getBookId()
+		            );
+
+		            orderItem.setQuantity(
+		                    item.getQuantity()
+		            );
+
+		            orderItemRepository.save(
+		                    orderItem
+		            );
+		        }
+
+		        PaymentDTO payment =
+		                new PaymentDTO();
+
+		        payment.setOrderId(
+		                savedOrder.getId()
+		        );
+
+		        payment.setUserId(
+		                user.getId()
+		        );
+
+		        payment.setAmount(
+		                totalAmount
+		        );
+
+		        PaymentDTO response =
+		                paymentClient.processPayment(
+		                        payment
+		                );
+
+		        if (response != null &&
+		                "SUCCESS".equals(
+		                        response.getStatus())) {
+
+		            savedOrder.setStatus(
+		                    "CONFIRMED"
+		            );
+
+		            publishNotification(
+		                    user.getEmail(),
+		                    "Order Confirmed",
+		                    "Your order is CONFIRMED"
+		            );
+
+		        } else {
+
+		            savedOrder.setStatus(
+		                    "FAILED"
+		            );
+
+		            publishNotification(
+		                    user.getEmail(),
+		                    "Order Failed",
+		                    "Your order FAILED"
+		            );
+
+		            rollbackStock(
+		                    savedOrder.getId()
+		            );
+		        }
+
+		    } catch (Exception e) {
+
+		        savedOrder.setStatus(
+		                "FAILED"
+		        );
+
+		        publishNotification(
+		                user.getEmail(),
+		                "Order Failed",
+		                "Payment service error - order FAILED"
+		        );
+
+		        rollbackStock(
+		                savedOrder.getId()
+		        );
+		    }
+
+		    return orderRepository.save(
+		            savedOrder
+		    );
+		}
+	 private void rollbackStock(int orderId) {
+
+		    List<OrderItem> items =
+		            orderItemRepository
+		                    .findByOrderId(orderId);
+
+		    for (OrderItem item : items) {
+
+		        bookClient.increaseStock(
+		                item.getBookId(),
+		                item.getQuantity()
+		        );
+		    }
+		}
+	/* public Order createOrder(Order order, String authorization) {
 
 		    String email = decoder.decodeHeader(authorization);
 
@@ -187,7 +362,7 @@ public class OrderService {
 		    }
 
 		    return orderRepository.save(savedOrder);
-		}
+		}*/
 	 
 	 private void publishNotification(
 		        String email,
@@ -220,7 +395,6 @@ public class OrderService {
 		        throw new InvalidOrderException("Invalid book ID");
 		    }
 
-		    // 🔥 KLJUČ: setuj userId iz auth-a
 		    order.setUserId(user.getId());
 
 		    // 2. book

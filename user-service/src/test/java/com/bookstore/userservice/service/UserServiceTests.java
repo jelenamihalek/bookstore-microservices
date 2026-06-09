@@ -75,7 +75,7 @@ class UserServiceTests {
         assertThrows(RuntimeException.class, () -> userService.createUser(user));
     }
 
-    // ✅ GET USER BY ID
+    //  GET USER BY ID
     @Test
     void shouldReturnUserById() {
         User user = new User(1, "mail", "pass", "USER");
@@ -94,7 +94,7 @@ class UserServiceTests {
         assertThrows(RuntimeException.class, () -> userService.getUserById(1));
     }
 
-    // ✅ DELETE USER
+    // DELETE USER
     @Test
     void shouldDeleteUser() {
         User user = new User(1, "mail", "pass", "USER");

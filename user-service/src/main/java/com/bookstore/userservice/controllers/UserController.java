@@ -44,7 +44,7 @@ public class UserController {
 
     @PostMapping("/admin")
     public User createUserAsAdmin(@RequestBody User user) {
-    	;
+    	
         return userService.createUserAsAdmin(user);
     }
     @PutMapping("/{id}")

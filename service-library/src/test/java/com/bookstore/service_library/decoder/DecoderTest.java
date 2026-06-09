@@ -10,7 +10,6 @@ class DecoderTest {
 
     private final Decoder decoder = new Decoder();
 
-    // ✅ SUCCESS
     @Test
     void shouldDecodeHeaderCorrectly() {
 
@@ -24,7 +23,6 @@ class DecoderTest {
         assertEquals("test@mail.com", result);
     }
 
-    // ❌ INVALID HEADER (no Basic)
     @Test
     void shouldThrow_whenHeaderInvalid() {
 
@@ -35,7 +33,7 @@ class DecoderTest {
         );
     }
 
-    // ❌ EMPTY HEADER
+
     @Test
     void shouldThrow_whenHeaderEmpty() {
 
