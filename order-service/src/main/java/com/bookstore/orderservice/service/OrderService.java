@@ -58,7 +58,7 @@ public class OrderService {
 	public OrderService(OrderRepository orderRepository, BookClient bookClient,UserClient userClient,
 			PaymentClient paymentClient,
 			NotificationClient notificationClient,
-			Decoder decoder, EventPublisher eventPublisher) {
+			Decoder decoder, EventPublisher eventPublisher,OrderItemRepository orderItemRepository) {
 		super();
 		this.orderRepository = orderRepository;
 		this.bookClient=bookClient;
@@ -67,6 +67,7 @@ public class OrderService {
 		this.decoder=decoder;
 		this.notificationClient=notificationClient;
 		  this.eventPublisher = eventPublisher;
+		  this.orderItemRepository=orderItemRepository;
 	
 	}
 	
@@ -99,6 +100,7 @@ public class OrderService {
 		    Order savedOrder = orderRepository.save(order);
 
 		    double totalAmount = 0;
+		    
 
 		    try {
 
@@ -210,7 +212,10 @@ public class OrderService {
 		            );
 		        }
 
-		    } catch (Exception e) {
+		    } catch (InvalidOrderException e) {
+		        throw e;
+		    }
+		    catch (Exception e) {
 
 		        savedOrder.setStatus(
 		                "FAILED"

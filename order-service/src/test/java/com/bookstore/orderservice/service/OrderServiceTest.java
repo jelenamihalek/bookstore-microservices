@@ -1,6 +1,8 @@
 package com.bookstore.orderservice.service;
 
 import com.bookstore.orderservice.models.Order;
+import com.bookstore.orderservice.models.OrderItem;
+import com.bookstore.orderservice.repository.OrderItemRepository;
 import com.bookstore.orderservice.repository.OrderRepository;
 import com.bookstore.orderservice.service.OrderService;
 import com.bookstore.orderservice.clients.*;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -31,14 +34,20 @@ class OrderServiceTest {
     @Mock private EventPublisher eventPublisher;
     @InjectMocks
     private OrderService orderService;
+    
+    @Mock
+    private OrderItemRepository orderItemRepository;
 
-    // ✅ SUCCESS FLOW
+    // SUCCESS FLOW
     @Test
     void shouldCreateOrderSuccessfully() {
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(2);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setBookId(1);
+    	item.setQuantity(2);
+
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
 
         when(decoder.decodeHeader(any())).thenReturn("mail");
 
@@ -61,7 +70,7 @@ class OrderServiceTest {
 
         when(paymentClient.processPayment(any())).thenReturn(paymentResponse);
 
-        Order result = orderService.createOrder(order, "token");
+        Order result = orderService.createOrder(request, "token");
 
         assertEquals("CONFIRMED", result.getStatus());
        // verify(notificationClient).sendNotification(any());
@@ -69,16 +78,21 @@ class OrderServiceTest {
         .publish(any());
     }
 
-    // ❌ USER NOT FOUND
+    //  USER NOT FOUND
     @Test
     void shouldThrow_whenUserNotFound() {
         when(decoder.decodeHeader(any())).thenReturn("mail");
         when(userClient.findByEmail(any())).thenReturn(null);
 
-        Order order = new Order();
+        OrderItemRequestDTO item = new OrderItemRequestDTO();
+       
+
+        OrderRequestDTO request = new OrderRequestDTO();
+        request.setItems(List.of(item));
+        
 
         assertThrows(RuntimeException.class,
-                () -> orderService.createOrder(order, "token"));
+                () -> orderService.createOrder(request, "token"));
     }
 
     // ❌ INVALID QUANTITY
@@ -91,14 +105,16 @@ class OrderServiceTest {
 
         when(userClient.findByEmail(any())).thenReturn(user);
 
-        Order order = new Order();
-        order.setQuantity(0);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setQuantity(0);
 
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
         assertThrows(RuntimeException.class,
-                () -> orderService.createOrder(order, "token"));
+                () -> orderService.createOrder(request, "token"));
     }
 
-    // ❌ NOT ENOUGH STOCK
+    // NOT ENOUGH STOCK
     @Test
     void shouldThrow_whenNotEnoughStock() {
         when(decoder.decodeHeader(any())).thenReturn("mail");
@@ -108,9 +124,12 @@ class OrderServiceTest {
 
         when(userClient.findByEmail(any())).thenReturn(user);
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(10);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setBookId(1);
+    	item.setQuantity(10);
+
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
 
         BookDTO book = new BookDTO();
         book.setStock(5);
@@ -118,16 +137,19 @@ class OrderServiceTest {
         when(bookClient.getBookById(1)).thenReturn(book);
 
         assertThrows(RuntimeException.class,
-                () -> orderService.createOrder(order, "token"));
+                () -> orderService.createOrder(request, "token"));
     }
 
-    // ❌ PAYMENT FAIL
+    //  PAYMENT FAIL
     @Test
     void shouldSetFailed_whenPaymentFails() {
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(1);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setBookId(1);
+    	item.setQuantity(1);
+
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
 
         when(decoder.decodeHeader(any())).thenReturn("mail");
 
@@ -144,13 +166,19 @@ class OrderServiceTest {
         when(bookClient.getBookById(1)).thenReturn(book);
 
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        OrderItem savedItem = new OrderItem();
+        savedItem.setBookId(1);
+        savedItem.setQuantity(1);
+
+        when(orderItemRepository.findByOrderId(anyInt()))
+                .thenReturn(List.of(savedItem));
 
         PaymentDTO response = new PaymentDTO();
         response.setStatus("FAILED");
 
         when(paymentClient.processPayment(any())).thenReturn(response);
 
-        Order result = orderService.createOrder(order, "token");
+        Order result = orderService.createOrder(request, "token");
 
         assertEquals("FAILED", result.getStatus());
         verify(bookClient).increaseStock(anyInt(), anyInt());
@@ -167,19 +195,25 @@ class OrderServiceTest {
         when(userClient.findByEmail(any())).thenReturn(user);
         when(bookClient.getBookById(anyInt())).thenReturn(null);
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(1);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setBookId(1);
+    	item.setQuantity(1);
+
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
 
         assertThrows(RuntimeException.class,
-                () -> orderService.createOrder(order, "token"));
+                () -> orderService.createOrder(request, "token"));
     }
     @Test
     void shouldHandleException_whenPaymentServiceFails() {
 
-        Order order = new Order();
-        order.setBookId(1);
-        order.setQuantity(1);
+    	OrderItemRequestDTO item = new OrderItemRequestDTO();
+    	item.setBookId(1);
+    	item.setQuantity(1);
+
+    	OrderRequestDTO request = new OrderRequestDTO();
+    	request.setItems(List.of(item));
 
         when(decoder.decodeHeader(any())).thenReturn("mail");
 
@@ -196,11 +230,17 @@ class OrderServiceTest {
         when(bookClient.getBookById(anyInt())).thenReturn(book);
 
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        OrderItem savedItem = new OrderItem();
+        savedItem.setBookId(1);
+        savedItem.setQuantity(1);
+
+        when(orderItemRepository.findByOrderId(anyInt()))
+                .thenReturn(List.of(savedItem));
 
         when(paymentClient.processPayment(any()))
                 .thenThrow(new RuntimeException());
 
-        Order result = orderService.createOrder(order, "token");
+        Order result = orderService.createOrder(request, "token");
 
         assertEquals("FAILED", result.getStatus());
         verify(bookClient).increaseStock(anyInt(), anyInt());

@@ -37,7 +37,7 @@ class OrderIntegrationTest {
     @MockBean private NotificationClient notificationClient;
     @MockBean private Decoder decoder;
 
-    // ✅ FULL FLOW SUCCESS
+    //  FULL FLOW SUCCESS
     @Test
     void shouldCreateOrder_endToEnd_success() throws Exception {
 
@@ -64,16 +64,20 @@ class OrderIntegrationTest {
                 .header("Authorization", "Bearer test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                        "bookId": 1,
-                        "quantity": 2
-                    }
-                """))
+                		{
+                		  "items": [
+                		    {
+                		      "bookId": 1,
+                		      "quantity": 2
+                		    }
+                		  ]
+                		}
+                		"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
     }
 
-    // ❌ PAYMENT FAIL FLOW
+    //  PAYMENT FAIL FLOW
     @Test
     void shouldCreateOrder_failedPayment() throws Exception {
 
@@ -109,7 +113,7 @@ class OrderIntegrationTest {
                 .andExpect(jsonPath("$.status").value("FAILED"));
     }
 
-    // ❌ INVALID QUANTITY
+    //  INVALID QUANTITY
     @Test
     void shouldFail_whenInvalidQuantity() throws Exception {
 
@@ -124,11 +128,15 @@ class OrderIntegrationTest {
                 .header("Authorization", "Bearer test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                        "bookId": 1,
-                        "quantity": 0
-                    }
-                """))
+                		{
+                		  "items": [
+                		    {
+                		      "bookId": 1,
+                		      "quantity": -1
+                		    }
+                		  ]
+                		}
+                		"""))
                 .andExpect(status().is4xxClientError());
     }
 }
