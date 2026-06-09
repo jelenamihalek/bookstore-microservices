@@ -84,8 +84,13 @@ class OrderControllerTest {
     @Test
     void shouldGetMyOrders() throws Exception {
 
-        when(orderService.getOrdersForUser(any()))
-                .thenReturn(List.of(new Order()));
+    	OrderResponseDTO response =new OrderResponseDTO();
+
+    	response.setOrderId(1);
+    	response.setStatus("CONFIRMED");
+
+    	when(orderService.getOrdersForUser(any()))
+    	        .thenReturn(List.of(response));
 
         mockMvc.perform(get("/orders/my")
                 .header("Authorization", "Bearer test"))
@@ -96,8 +101,13 @@ class OrderControllerTest {
     @Test
     void shouldGetAllOrders() throws Exception {
 
-        when(orderService.getAllOrders())
-                .thenReturn(List.of(new Order()));
+    	OrderResponseDTO response =new OrderResponseDTO();
+
+    	response.setOrderId(1);
+    	response.setStatus("CONFIRMED");
+
+    	when(orderService.getAllOrders())
+    	        .thenReturn(List.of(response));
 
         mockMvc.perform(get("/orders/all")
                 .header("Authorization", "Bearer test"))
@@ -117,25 +127,30 @@ class OrderControllerTest {
     @Test
     void shouldGetOrderByIdForUser() throws Exception {
 
-        Order order = new Order();
-        order.setId(1);
+    	OrderResponseDTO response =new OrderResponseDTO();
 
-        when(orderService.getOrderByIdForUser(anyInt(), any()))
-                .thenReturn(order);
+    	response.setOrderId(1);
+    	response.setStatus("CONFIRMED");
+
+    	when(orderService.getOrderByIdForUser(anyInt(), any()))
+    	        .thenReturn(response);
 
         mockMvc.perform(get("/orders/1")
                 .header("Authorization", "Bearer test"))
                 .andExpect(status().isOk());
     }
 
-    // ✅ GET BY ID (ADMIN)
+    //  GET BY ID (ADMIN)
     @Test
     void shouldGetOrderByIdAdmin() throws Exception {
 
-        Order order = new Order();
-        order.setId(1);
+    	OrderResponseDTO response =new OrderResponseDTO();
 
-        when(orderService.getOrderById(1)).thenReturn(order);
+    	response.setOrderId(1);
+    	response.setStatus("CONFIRMED");
+
+    	when(orderService.getOrderById(1))
+    	        .thenReturn(response);
 
         mockMvc.perform(get("/orders/admin/1"))
                 .andExpect(status().isOk());

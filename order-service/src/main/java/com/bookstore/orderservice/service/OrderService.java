@@ -73,12 +73,18 @@ public class OrderService {
 	
 	}
 	
-	public List<Order> getAllOrders(){
-		return orderRepository.findAll();
+	public List<OrderResponseDTO> getAllOrders(){
+		
+		  return orderRepository.findAll()
+		            .stream()
+		            .map(this::mapToResponse)
+		            .toList();
 	}
-	 public Order getOrderById(int id) {
-	        return orderRepository.findById(id)
-	                .orElseThrow(() -> new OrderNotFoundException("Order not found",id));
+	 public OrderResponseDTO getOrderById(int id) {
+		 Order order = orderRepository.findById(id)
+		            .orElseThrow(() ->new OrderNotFoundException("Order not found",id));
+
+		    return mapToResponse(order);
 	 }
 	 
 	 public OrderResponseDTO createOrder( OrderRequestDTO request,String authorization) {
@@ -267,7 +273,7 @@ public class OrderService {
 		orderRepository.delete(order);
 	}
 	
-	public List<Order> getOrdersForUser(String authorization) {
+	public List<OrderResponseDTO> getOrdersForUser(String authorization) {
 		 String email=decoder.decodeHeader(authorization);
 
 		 UserDTO user = userClient.findByEmail(email);
@@ -275,11 +281,16 @@ public class OrderService {
 		    if (user == null) {
 		        throw new UserNotFoundByEmailException("User not found",email);
 		    }
+		    
+		    List<Order> orders =orderRepository.findByUserId( user.getId());
 
-		    return orderRepository.findByUserId(user.getId());
+		    return orders.stream()
+		            .map(this::mapToResponse)
+		            .toList();
+
 	}
 	
-	public Order getOrderByIdForUser(int id, String authorization) {
+	public OrderResponseDTO getOrderByIdForUser(int id, String authorization) {
 
 		 String email=decoder.decodeHeader(authorization);
 	     UserDTO user = userClient.findByEmail(email);
@@ -294,7 +305,42 @@ public class OrderService {
 	    if (order.getUserId() != (user.getId())) {
 	        throw new OrderAccessDeniedException("You are not allowed to view this order",id);
 	    }
+	    
 
-	    return order;
+	    return mapToResponse(order);
+	}
+	
+	private OrderResponseDTO mapToResponse(Order order) {
+
+	    OrderResponseDTO response =new OrderResponseDTO();
+
+	    response.setOrderId(order.getId());
+	    response.setStatus(order.getStatus());
+
+	    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+
+	    List<OrderItemResponseDTO> responseItems = new ArrayList<>();
+
+	    double totalAmount = 0;
+
+	    for (OrderItem item : items) {
+
+	        BookDTO book =bookClient.getBookById(item.getBookId());
+
+	        OrderItemResponseDTO dto =new OrderItemResponseDTO();
+
+	        dto.setBookId(book.getId());
+	        dto.setTitle(book.getTitle());
+	        dto.setQuantity(item.getQuantity());
+
+	        responseItems.add(dto);
+
+	        totalAmount +=book.getPrice()* item.getQuantity();
+	    }
+
+	    response.setItems(responseItems);
+	    response.setTotalAmount(totalAmount);
+
+	    return response;
 	}
 }

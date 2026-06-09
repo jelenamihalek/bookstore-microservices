@@ -36,11 +36,11 @@ public class OrderController {
     }
 
     @GetMapping("/all")
-    public List<Order> getAll(@RequestHeader("Authorization") String authorization){
+    public List<OrderResponseDTO> getAll(@RequestHeader("Authorization") String authorization){
         return orderService.getAllOrders();
     }
     @GetMapping("/my")
-    public List<Order> getOrders(@ RequestHeader("Authorization") String authorization) {
+    public List<OrderResponseDTO> getOrders(@ RequestHeader("Authorization") String authorization) {
      
         return orderService.getOrdersForUser(authorization);
     }
@@ -52,7 +52,7 @@ public class OrderController {
     }
     
     @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable int id,
+    public OrderResponseDTO getOrderById(@PathVariable int id,
                              @RequestHeader("Authorization") String authorization) {
 
        
@@ -60,7 +60,7 @@ public class OrderController {
     }
 
     @GetMapping("/admin/{id}")
-    public Order getOrderByIdAdmin(@PathVariable int id) {
+    public OrderResponseDTO getOrderByIdAdmin(@PathVariable int id) {
 
         return orderService.getOrderById(id);
     }
