@@ -104,11 +104,15 @@ class OrderIntegrationTest {
                 .header("Authorization", "Bearer test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                        "bookId": 1,
-                        "quantity": 2
-                    }
-                """))
+                		{
+                		  "items": [
+                		    {
+                		      "bookId": 1,
+                		      "quantity": 2
+                		    }
+                		  ]
+                		}
+                		"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("FAILED"));
     }
