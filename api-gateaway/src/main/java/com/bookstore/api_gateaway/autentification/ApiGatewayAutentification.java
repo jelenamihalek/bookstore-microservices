@@ -78,7 +78,7 @@ public class ApiGatewayAutentification {
         WebClient client = webClientBuilder.baseUrl("http://user-service:8100").build();
     	 
     		// WebClient client = webClientBuilder.baseUrl("http://localhost:8100").build();
-    		// WebClient client = webClientBuilder.build();
+    		// WebClient client = webClientBuilder.build(); //
         return username -> client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/users/email")
